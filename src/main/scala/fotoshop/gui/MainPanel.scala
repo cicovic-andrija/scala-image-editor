@@ -1,12 +1,13 @@
-package com.github.cicovicandrija.fotoshop.gui
+package fotoshop.gui
 
-import java.awt.{AlphaComposite, Image}
+import java.awt.{AlphaComposite, Color, Image}
 import swing._
 import java.awt.image.BufferedImage
 import javax.imageio.ImageIO
-import javax.swing.border.TitledBorder
+import javax.swing.border.{BevelBorder, LineBorder, TitledBorder}
 import scala.swing.BorderPanel
 import java.io.File
+import javax.swing.plaf.BorderUIResource
 import scala.swing.BorderPanel.Position._
 
 class ImagePanel extends Panel {
@@ -57,12 +58,29 @@ class ImagePanel extends Panel {
 }
 
 class MainPanel extends BorderPanel {
-  border = new TitledBorder("Workspace")
-  var imgPanel = new ImagePanel()
-  var btn = new Button(Action("Load") {
-    imgPanel.setTransparency
-  })
-  imgPanel.scaleImage(1080, 720)
-  layout(imgPanel) = Center
-  layout(btn) = North
+  border = GuiComponents.DefaultBorder
+
+  var sidebarPanel = new BorderPanel {
+    border = GuiComponents.DefaultBorder
+    preferredSize = new Dimension(384, peer.getPreferredSize.height)
+    minimumSize = new Dimension(384, peer.getPreferredSize.height)
+    layout(GuiComponents.LayersPanel) = Center
+    layout(GuiComponents.ToolsPanel) = North
+    layout(GuiComponents.ShortcutsPanel) = South
+  }
+
+  var statusPanel = new BorderPanel {
+    border = new BevelBorder(BevelBorder.LOWERED)
+    layout(new Label("Status bar...") {
+      horizontalAlignment = Alignment.Left
+    }) = Center
+  }
+
+  var workspacePanel = new BorderPanel {
+    border = GuiComponents.DefaultBorder
+  }
+
+  layout(workspacePanel) = Center
+  layout(sidebarPanel) = East
+  layout(statusPanel) = South
 }
