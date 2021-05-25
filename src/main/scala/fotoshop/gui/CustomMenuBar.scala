@@ -1,44 +1,63 @@
 package fotoshop.gui
 
-import javax.swing.JMenuItem
-import scala.swing.event.Key
+import scala.swing.event.{EditDone, Event, Key}
 import scala.swing._
 
-class CustomMenuBar extends MenuBar {
-  // Util. function to determine the preferred size of a menu itme
-  private def menuItemDimension(peer: JMenuItem) =
-    new Dimension(GuiConstants.MI_WIDTH, peer.getPreferredSize.height)
+case class ProjectOpened(projectName: String) extends Event
+
+class CustomMenuBar private extends MenuBar {
+
+  // Helper class
+  implicit class MenuItemExtensions(mi: MenuItem) {
+    def setProperties(key: Key.Value): MenuItem = {
+      mi.preferredSize = new Dimension(GuiConstants.MI_WIDTH, mi.peer.getPreferredSize.height)
+      mi.mnemonic = key
+      mi
+    }
+  }
 
   // Project menu
   contents += new Menu(GuiConstants.MENU_PROJECT) {
     mnemonic = Key.P
 
-    contents += new MenuItem(GuiConstants.MI_NEW_PROJECT) {
-      mnemonic = Key.N
-      preferredSize = menuItemDimension(peer)
-    }
+    contents += new MenuItem(
+      Action(GuiConstants.MI_NEW_PROJECT){
+      }
+    ).setProperties(Key.N)
 
-    contents += new MenuItem(GuiConstants.MI_OPEN_PROJECT) {
-      mnemonic = Key.O
-      preferredSize = menuItemDimension(peer)
-    }
+    contents += new MenuItem(
+      Action(GuiConstants.MI_OPEN_PROJECT) {
+        val name = GuiComponents.openProject()
+        name match {
+          case Some(s) => publish(ProjectOpened(s))
+          case None =>
+        }
+      }
+    ).setProperties(Key.O)
 
-    contents += new MenuItem(GuiConstants.MI_SAVE_PROJECT) {
-      mnemonic = Key.S
-      preferredSize = menuItemDimension(peer)
-    }
+    contents += new MenuItem(
+      Action(GuiConstants.MI_SAVE_PROJECT) {
+      }
+    ).setProperties(Key.S)
 
-    contents += new MenuItem(GuiConstants.MI_CLOSE_PROJECT) {
-      mnemonic = Key.C
-      preferredSize = menuItemDimension(peer)
-    }
+    contents += new MenuItem(
+      Action(GuiConstants.MI_CLOSE_PROJECT) {
+      }
+    ).setProperties(Key.C)
 
     // Add a separator before exit menu item
     contents += new Separator()
 
-    contents += new MenuItem(Action(GuiConstants.MI_EXIT) { sys.exit(0) }) {
-      mnemonic = Key.X
-      preferredSize = menuItemDimension(peer)
+    contents += new MenuItem(
+      Action(GuiConstants.MI_EXIT) {
+        sys.exit(0) // FIXME: Is there a more elegant way to exit?
+      }
+    ).setProperties(Key.X)
+
+    contents foreach { listenTo(_) }
+    deafTo(this)
+    reactions += {
+      case e: ProjectOpened => publish(e)
     }
   }
 
@@ -48,29 +67,36 @@ class CustomMenuBar extends MenuBar {
 
     // Tools menu item
     contents += new MenuItem(
-      Action(GuiConstants.MI_TOOLS){
-        GuiComponents.ToolsPanel.toggle()
-      }){
-      mnemonic = Key.T
-      preferredSize = menuItemDimension(peer)
-    }
+      Action(GuiConstants.MI_TOOLS) {
+        GuiComponents.toolsPanel.toggle()
+      }
+    ).setProperties(Key.T)
 
     // Shortcuts menu item
     contents += new MenuItem(
       Action(GuiConstants.MI_SHORTCUTS) {
-        GuiComponents.ShortcutsPanel.toggle()
-      }){
-      mnemonic = Key.S
-      preferredSize = menuItemDimension(peer)
-    }
+        GuiComponents.shortcutsPanel.toggle()
+      }
+    ).setProperties(Key.S)
 
     // Version menu item
     contents += new MenuItem(
       Action(GuiConstants.MI_VERSION) {
         Dialog.showMessage(null, GuiConstants.VER_MESSAGE, GuiConstants.VER_DIAG_TITLE)
-      }){
-      mnemonic = Key.V
-      preferredSize = menuItemDimension(peer)
-    }
+      }
+    ).setProperties(Key.V)
+
+    contents foreach { listenTo(_) }
   }
+
+  contents foreach { listenTo(_) }
+  deafTo(this)
+  //reactions += {
+  //  case e: ProjectOpened => publish(e)
+  //}
+}
+
+object CustomMenuBar {
+  private val _instance = new CustomMenuBar()
+  def instance = _instance
 }

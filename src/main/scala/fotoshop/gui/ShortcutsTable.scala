@@ -1,17 +1,13 @@
 package fotoshop.gui
 
-import fotoshop.gui.GuiComponents.DefaultBorder
-
 import javax.swing.border.LineBorder
+import scala.annotation.tailrec
 import scala.swing.ScrollPane.BarPolicy
-import scala.swing.{Dimension, ScrollPane, Table}
+import scala.swing.{ScrollPane, Table}
 
 object ShortcutsTable {
-  // Column names
-  // FIXME: Is there a better way to create a Seq[String]?
-  private val shortcutsTableHeader: Seq[String] = Seq("Shortcut", "Description")
+  private val shortcutsTableHeader = Seq("Shortcut", "Description")
 
-  // Table data
   // FIXME: Is there a way to create Array[Array[String]] and use that?
   private val shortcutsTableData: Array[Array[Any]] = Array(
     Array("Alt+P", "Open Project menu"),
@@ -26,8 +22,7 @@ object ShortcutsTable {
     Array("Alt+H+V", "Display version info"),
   )
 
-  // Instance access
-  private val instance_ = new ScrollPane() {
+  private val _instance = new ScrollPane() {
     contents = new Table(shortcutsTableData, shortcutsTableHeader) {
       border = new LineBorder(GuiConstants.TABLE_BORDER_C)
       enabled = false
@@ -36,5 +31,6 @@ object ShortcutsTable {
     verticalScrollBarPolicy = BarPolicy.AsNeeded
     horizontalScrollBarPolicy = BarPolicy.AsNeeded
   }
-  def instance: ScrollPane = instance_
+
+  def instance: ScrollPane = _instance
 }

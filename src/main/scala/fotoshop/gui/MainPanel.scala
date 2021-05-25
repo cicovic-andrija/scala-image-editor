@@ -1,13 +1,12 @@
 package fotoshop.gui
 
-import java.awt.{AlphaComposite, Color, Image}
+import java.awt.{AlphaComposite, Image}
 import swing._
 import java.awt.image.BufferedImage
 import javax.imageio.ImageIO
-import javax.swing.border.{BevelBorder, LineBorder, TitledBorder}
+import javax.swing.border._
 import scala.swing.BorderPanel
 import java.io.File
-import javax.swing.plaf.BorderUIResource
 import scala.swing.BorderPanel.Position._
 
 class ImagePanel extends Panel {
@@ -58,15 +57,15 @@ class ImagePanel extends Panel {
 }
 
 class MainPanel extends BorderPanel {
-  border = GuiComponents.DefaultBorder
+  border = GuiComponents.defaultBorder
 
   var sidebarPanel = new BorderPanel {
-    border = GuiComponents.DefaultBorder
+    border = GuiComponents.defaultBorder
     preferredSize = new Dimension(384, peer.getPreferredSize.height)
     minimumSize = new Dimension(384, peer.getPreferredSize.height)
-    layout(GuiComponents.LayersPanel) = Center
-    layout(GuiComponents.ToolsPanel) = North
-    layout(GuiComponents.ShortcutsPanel) = South
+    layout(GuiComponents.layersPanel) = Center
+    layout(GuiComponents.toolsPanel) = North
+    layout(GuiComponents.shortcutsPanel) = South
   }
 
   var statusPanel = new BorderPanel {
@@ -77,7 +76,7 @@ class MainPanel extends BorderPanel {
   }
 
   var workspacePanel = new BorderPanel {
-    border = GuiComponents.DefaultBorder
+    border = GuiComponents.defaultBorder
   }
 
   layout(workspacePanel) = Center

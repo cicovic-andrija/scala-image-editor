@@ -19,11 +19,14 @@ object GuiConstants {
   val TB_TOOLS         : String    = "Tools"
   val TB_LAYERS        : String    = "Layers"
   val TB_SHORTCUTS     : String    = "Shortcuts"
+  val EXT_XML          : String    = "xml"
+  val OPEN_DIAG_FILE_DESC : String = "XML Files"
+  val OPEN_DIAG_TITLE  : String    = "Select project file"
   val SHCUT_DIAG_TITLE : String    = MI_SHORTCUTS
   val VER_DIAG_TITLE   : String    = FRAME_TITLE concat " " concat MI_VERSION concat " Information"
   val VER_MESSAGE      : String    = FRAME_TITLE concat " " concat APP_VERSION
   val MI_WIDTH         : Int       = 128
-  val SHORTCUTS_TABLE_HEIGHT : Int = 256
+  val SHR_TABLE_HEIGHT : Int       = 256
   val DEFAULT_BORDER_C : Color     = Color.LIGHT_GRAY
   val TABLE_BORDER_C   : Color     = Color.BLACK
   val FRAME_MIN_SIZE   : Dimension = new Dimension(768, 432)
