@@ -2,7 +2,8 @@ package fotoshop.gui
 
 import fotoshop.cfg.Project
 
-import javax.swing.border.{LineBorder, TitledBorder}
+// FIXME: Fix all imports in whole project when done.
+import javax.swing.border.{BevelBorder, LineBorder, TitledBorder}
 import javax.swing.filechooser.FileNameExtensionFilter
 import scala.swing._
 import scala.swing.BorderPanel.Position._
@@ -20,7 +21,6 @@ object GuiComponents {
   val toolsPanel: ToggleablePanel = new BorderPanel with Toggleable {
     border = new TitledBorder(GuiConstants.TB_TOOLS)
     visible = true
-    layout(new Button("A")) = Center
   }
 
   val shortcutsPanel: ToggleablePanel = new BorderPanel with Toggleable {
@@ -31,27 +31,11 @@ object GuiComponents {
     layout(ShortcutsTable.instance) = Center
   }
 
-  def openProject(): Option[String] = {
-    val fileChooser = new FileChooser() {
-      title = GuiConstants.OPEN_DIAG_TITLE
-      multiSelectionEnabled = false
-      fileFilter = new FileNameExtensionFilter(
-        GuiConstants.OPEN_DIAG_FILE_DESC,
-        GuiConstants.EXT_XML,
-        GuiConstants.EXT_XML
-      )
+  val statusBar: BorderPanel = new BorderPanel {
+    border = new BevelBorder(BevelBorder.LOWERED)
+    val label = new Label(GuiConstants.SB_INIT_TEXT) {
+      horizontalAlignment = Alignment.Left
     }
-
-    fileChooser.showOpenDialog(null)
-    if (fileChooser.selectedFile != null) {
-      Project.load(XML.loadFile(fileChooser.selectedFile)) // FIXME: Error handling.
-      return Some(Project.instance.name)
-    }
-
-    return None
-  }
-
-  def closeProject() {
-    Project.close()
+    layout(label) = Center
   }
 }

@@ -68,18 +68,11 @@ class MainPanel extends BorderPanel {
     layout(GuiComponents.shortcutsPanel) = South
   }
 
-  var statusPanel = new BorderPanel {
-    border = new BevelBorder(BevelBorder.LOWERED)
-    layout(new Label("Status bar...") {
-      horizontalAlignment = Alignment.Left
-    }) = Center
-  }
-
   var workspacePanel = new BorderPanel {
     border = GuiComponents.defaultBorder
   }
 
   layout(workspacePanel) = Center
   layout(sidebarPanel) = East
-  layout(statusPanel) = South
+  layout(GuiComponents.statusBar) = South
 }
