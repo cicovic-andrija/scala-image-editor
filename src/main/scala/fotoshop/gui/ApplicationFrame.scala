@@ -20,11 +20,11 @@ class ApplicationFrame private extends scala.swing.MainFrame {
   listenTo(CustomMenuBar.instance)
   deafTo(this)
   reactions += {
-    case _: OpenProject => openProject()
-    case _: CloseProject => closeProject()
-    case _: ToggleTools => GuiComponents.toolsPanel.toggle()
-    case _: ToggleShortcuts => GuiComponents.shortcutsPanel.toggle()
-    case _: ShowVersion => Dialog.showMessage(null, GuiConstants.VER_MESSAGE, GuiConstants.VER_DIAG_TITLE)
+    case _: OpenRequested => openProject()
+    case _: CloseRequested => closeProject()
+    case _: ToggleToolsRequested => GuiComponents.toolsPanel.toggle()
+    case _: ToggleShortcutsRequested => GuiComponents.shortcutsPanel.toggle()
+    case _: VersionRequested => Dialog.showMessage(null, GuiConstants.VER_MESSAGE, GuiConstants.VER_DIAG_TITLE)
     case e: CustomEvent => publish(e)
   }
 
@@ -43,12 +43,16 @@ class ApplicationFrame private extends scala.swing.MainFrame {
     if (fileChooser.selectedFile != null) {
       Project.load(XML.loadFile(fileChooser.selectedFile)) // FIXME: Error handling.
       title = GuiConstants.FRAME_TITLE + " - " + Project.instance.name
+      CustomMenuBar.instance.enableSave()
+      CustomMenuBar.instance.enableClose()
     }
   }
 
   def closeProject() {
     Project.close()
     title = GuiConstants.FRAME_TITLE
+    CustomMenuBar.instance.disableSave()
+    CustomMenuBar.instance.disableClose()
   }
 }
 

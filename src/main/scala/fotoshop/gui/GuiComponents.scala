@@ -1,13 +1,9 @@
 package fotoshop.gui
 
-import fotoshop.cfg.Project
-
 // FIXME: Fix all imports in whole project when done.
 import javax.swing.border.{BevelBorder, LineBorder, TitledBorder}
-import javax.swing.filechooser.FileNameExtensionFilter
 import scala.swing._
 import scala.swing.BorderPanel.Position._
-import scala.xml.XML
 
 object GuiComponents {
   type ToggleablePanel = BorderPanel with Toggleable
@@ -29,6 +25,15 @@ object GuiComponents {
     maximumSize = new Dimension(peer.getMaximumSize.width, GuiConstants.SHR_TABLE_HEIGHT)
     visible = false
     layout(ShortcutsTable.instance) = Center
+  }
+
+  val sidebarPanel=  new BorderPanel {
+    border = GuiComponents.defaultBorder
+    preferredSize = new Dimension(GuiConstants.SIDEBAR_WIDTH, peer.getPreferredSize.height)
+    minimumSize = new Dimension(GuiConstants.SIDEBAR_WIDTH, peer.getPreferredSize.height)
+    layout(GuiComponents.layersPanel) = Center
+    layout(GuiComponents.toolsPanel) = North
+    layout(GuiComponents.shortcutsPanel) = South
   }
 
   val statusBar: BorderPanel = new BorderPanel {

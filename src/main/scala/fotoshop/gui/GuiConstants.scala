@@ -27,6 +27,7 @@ object GuiConstants {
   val VER_DIAG_TITLE   : String    = FRAME_TITLE + " " + MI_VERSION + " Information"
   val VER_MESSAGE      : String    = FRAME_TITLE + " " + APP_VERSION
   val MI_WIDTH         : Int       = 128
+  val SIDEBAR_WIDTH    : Int       = 384
   val SHR_TABLE_HEIGHT : Int       = 192
   val DEFAULT_BORDER_C : Color     = Color.LIGHT_GRAY
   val TABLE_BORDER_C   : Color     = Color.BLACK
