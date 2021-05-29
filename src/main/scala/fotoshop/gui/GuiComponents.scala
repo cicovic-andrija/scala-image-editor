@@ -15,18 +15,19 @@ object GuiComponents {
 
   val workspacePanel = new BorderPanel() with Refreshable {
     // no border
+    val emptyWorkspace = new Workspace(0, 0)
     val scrollPane =  new ScrollPane() {
       border = null // no border
       verticalScrollBarPolicy = BarPolicy.AsNeeded
       horizontalScrollBarPolicy = BarPolicy.AsNeeded
+      contents = emptyWorkspace
     }
     layout(scrollPane) = Center
 
     def preRefresh() {
       Project.instance match {
-        case Some(p) => scrollPane.contents = new Workspace(p.output.width, p.output.height)
-        case None => scrollPane.contents = null
-        case _ =>
+        case Some(p) => scrollPane.contents = new Workspace(10, 10)
+        case None => scrollPane.contents = emptyWorkspace
       }
     }
   }

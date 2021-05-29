@@ -5,7 +5,6 @@ import fotoshop.proj.Project
 import scala.swing._
 import javax.swing.filechooser.FileNameExtensionFilter
 import scala.swing.BorderPanel.Position.{Center, East, South}
-import scala.xml.XML
 
 class ApplicationFrame private extends scala.swing.MainFrame {
   title = GuiConstants.FRAME_TITLE
@@ -28,6 +27,7 @@ class ApplicationFrame private extends scala.swing.MainFrame {
   reactions += {
     case _: OpenRequested => openProject()
     case _: CloseRequested => closeProject()
+    case _: SaveRequested => saveProject()
     case _: ToggleToolsRequested => GuiComponents.toolsPanel.toggle()
     case _: ToggleShortcutsRequested => GuiComponents.shortcutsPanel.toggle()
     case _: VersionRequested => Dialog.showMessage(null, GuiConstants.VER_MESSAGE, GuiConstants.VER_DIAG_TITLE)
@@ -47,7 +47,7 @@ class ApplicationFrame private extends scala.swing.MainFrame {
 
     fileChooser.showOpenDialog(null)
     if (fileChooser.selectedFile != null) try {
-        Project.load(XML.loadFile(fileChooser.selectedFile))
+        Project.load(fileChooser.selectedFile)
         Project.instance match {
           case Some(_) => {
             GuiComponents.workspacePanel.refresh()
@@ -59,16 +59,26 @@ class ApplicationFrame private extends scala.swing.MainFrame {
           case None => throw new Exception() // Project.load failed without throwing an exception.
         }
     } catch {
-        case _: Exception => {
-          GuiComponents.statusBar.setErrorText(
-            GuiConstants.SB_FMT_CORRUPTED_PROJ.format(fileChooser.selectedFile.getName)
+        case _: Throwable => GuiComponents.statusBar.setErrorText(
+            GuiConstants.SB_FMT_CORRUPTED_PROJ.format(fileChooser.selectedFile.getPath)
           )
-        }
+    }
+  }
+
+  def saveProject() {
+    Project.instance match {
+      case Some(p) => try p.save() catch {
+        case _: Throwable => GuiComponents.statusBar.setErrorText(
+          GuiConstants.SB_FMT_SAVE_FAILED.format(p.file.getPath)
+        )
+      }
+      case None => // should never happen
     }
   }
 
   def closeProject() {
     Project.close()
+    GuiComponents.workspacePanel.refresh()
     GuiComponents.layersPanel.refresh()
     CustomMenuBar.instance.refresh()
     refreshTitle()

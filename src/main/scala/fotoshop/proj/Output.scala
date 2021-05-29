@@ -8,4 +8,6 @@ class Output private[proj] (xmlData: xml.NodeSeq) {
 
   def width = _width
   def height = _height
+
+  def toXML: xml.Elem = <Output Width={ width toString } Height={ height toString } />
 }

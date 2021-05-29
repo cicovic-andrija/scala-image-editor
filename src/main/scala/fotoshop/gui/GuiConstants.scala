@@ -20,11 +20,13 @@ object GuiConstants {
   val TB_LAYERS             : String    = "Layers"
   val TB_SHORTCUTS          : String    = "Shortcuts"
   val EXT_XML               : String    = "xml"
+  val XML_ENC_UTF_8         : String    = "UTF-8"
   val SB_ERROR_PREFIX       : String    = "ERROR: "
   val SB_INIT_TEXT          : String    = "Initializing...Done."
   val SB_TEXT_READY         : String    = "Ready."
   val SB_TEXT_PROJ_CLOSED   : String    = "Project closed."
   val SB_FMT_CORRUPTED_PROJ : String    = "Failed to open project from file %s. The file is possibly corrupted."
+  val SB_FMT_SAVE_FAILED    : String    = "Failed to save the project to the file %s."
   val OPEN_DIAG_FILE_DESC   : String    = "XML Files"
   val OPEN_DIAG_TITLE       : String    = "Select project file"
   val SHCUT_DIAG_TITLE      : String    = MI_SHORTCUTS
