@@ -1,14 +1,11 @@
 package fotoshop.gui
 
 import javax.swing.border.LineBorder
-import scala.annotation.tailrec
+import scala.swing._
 import scala.swing.ScrollPane.BarPolicy
-import scala.swing.{ScrollPane, Table}
 
 object ShortcutsTable {
-  private val shortcutsTableHeader = Seq("Shortcut", "Description")
-
-  // FIXME: Is there a way to create Array[Array[String]] and use that?
+  private val shortcutsTableHeader: Seq[String] = Seq("Shortcut", "Description")
   private val shortcutsTableData: Array[Array[Any]] = Array(
     Array("Alt+P", "Open Project menu"),
     Array("Alt+P+N", "Create new project"),
@@ -22,15 +19,11 @@ object ShortcutsTable {
     Array("Alt+H+V", "Display version info"),
   )
 
-  private val _instance = new ScrollPane() {
-    contents = new Table(shortcutsTableData, shortcutsTableHeader) {
-      border = new LineBorder(GuiConstants.TABLE_BORDER_C)
-      enabled = false
-      autoCreateRowSorter = true
-    }
-    verticalScrollBarPolicy = BarPolicy.AsNeeded
-    horizontalScrollBarPolicy = BarPolicy.AsNeeded
+  private val _instance = new Table(shortcutsTableData, shortcutsTableHeader) {
+    border = new LineBorder(GuiConstants.COLOR_BLACK)
+    enabled = false
+    autoCreateRowSorter = true
   }
 
-  def instance: ScrollPane = _instance
+  def instance: Table = _instance
 }

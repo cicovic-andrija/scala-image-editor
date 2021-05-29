@@ -1,4 +1,4 @@
-package fotoshop.ext
+package fotoshop.util
 
 object Extensions {
   implicit class StringExtensions(s :String) {

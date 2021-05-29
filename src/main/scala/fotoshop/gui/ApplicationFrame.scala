@@ -1,9 +1,10 @@
 package fotoshop.gui
 
-import fotoshop.cfg.Project
+import fotoshop.proj.Project
 
+import scala.swing._
 import javax.swing.filechooser.FileNameExtensionFilter
-import scala.swing.{Dialog, FileChooser}
+import scala.swing.BorderPanel.Position.{Center, East, South}
 import scala.xml.XML
 
 class ApplicationFrame private extends scala.swing.MainFrame {
@@ -15,7 +16,12 @@ class ApplicationFrame private extends scala.swing.MainFrame {
   minimumSize = GuiConstants.FRAME_MIN_SIZE
   centerOnScreen()
   menuBar = CustomMenuBar.instance
-  contents = new MainPanel()
+  contents = new BorderPanel() {
+    // no border
+    layout(GuiComponents.workspacePanel) = Center
+    layout(GuiComponents.sidebarPanel) = East
+    layout(GuiComponents.statusBar) = South
+  }
 
   listenTo(CustomMenuBar.instance)
   deafTo(this)
@@ -40,19 +46,40 @@ class ApplicationFrame private extends scala.swing.MainFrame {
     }
 
     fileChooser.showOpenDialog(null)
-    if (fileChooser.selectedFile != null) {
-      Project.load(XML.loadFile(fileChooser.selectedFile)) // FIXME: Error handling.
-      title = GuiConstants.FRAME_TITLE + " - " + Project.instance.name
-      CustomMenuBar.instance.enableSave()
-      CustomMenuBar.instance.enableClose()
+    if (fileChooser.selectedFile != null) try {
+        Project.load(XML.loadFile(fileChooser.selectedFile))
+        Project.instance match {
+          case Some(_) => {
+            GuiComponents.workspacePanel.refresh()
+            GuiComponents.layersPanel.refresh()
+            CustomMenuBar.instance.refresh()
+            refreshTitle()
+            GuiComponents.statusBar.clear()
+          }
+          case None => throw new Exception() // Project.load failed without throwing an exception.
+        }
+    } catch {
+        case _: Exception => {
+          GuiComponents.statusBar.setErrorText(
+            GuiConstants.SB_FMT_CORRUPTED_PROJ.format(fileChooser.selectedFile.getName)
+          )
+        }
     }
   }
 
   def closeProject() {
     Project.close()
-    title = GuiConstants.FRAME_TITLE
-    CustomMenuBar.instance.disableSave()
-    CustomMenuBar.instance.disableClose()
+    GuiComponents.layersPanel.refresh()
+    CustomMenuBar.instance.refresh()
+    refreshTitle()
+    GuiComponents.statusBar.setText(GuiConstants.SB_TEXT_PROJ_CLOSED)
+  }
+
+  def refreshTitle() {
+    Project.instance match {
+      case None => title = GuiConstants.FRAME_TITLE
+      case Some(p) => title = GuiConstants.FRAME_TITLE + " - " + p.name
+    }
   }
 }
 

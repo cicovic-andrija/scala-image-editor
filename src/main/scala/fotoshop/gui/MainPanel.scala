@@ -4,9 +4,7 @@ import java.awt.{AlphaComposite, Image}
 import swing._
 import java.awt.image.BufferedImage
 import javax.imageio.ImageIO
-import scala.swing.BorderPanel
 import java.io.File
-import scala.swing.BorderPanel.Position._
 
 class ImagePanel extends Panel {
   val imagePath = "img/nyc.jpg"
@@ -53,14 +51,4 @@ class ImagePanel extends Panel {
   def scaleImage(w: Int, h: Int) {
     buffImg = buffImg.getScaledInstance(w, h, Image.SCALE_DEFAULT)
   }
-}
-
-class MainPanel extends BorderPanel {
-  border = GuiComponents.defaultBorder
-
-  val workspacePanel = new Workspace()
-
-  layout(workspacePanel) = Center
-  layout(GuiComponents.sidebarPanel) = East
-  layout(GuiComponents.statusBar) = South
 }

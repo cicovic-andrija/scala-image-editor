@@ -1,5 +1,7 @@
 package fotoshop.gui
 
+import fotoshop.proj.Project
+
 import scala.swing._
 import scala.swing.event.Key
 
@@ -43,24 +45,22 @@ class CustomMenuBar private extends MenuBar with DeafToSelf {
   }
   contents foreach { listenTo(_) }
 
-  def enableSave() {
-    _saveMenuItem.enabled = true
+  def refresh() {
+    Project.instance match {
+      case None => {
+        _saveMenuItem.enabled = false
+        _closeMenuItem.enabled = false
+      }
+      case Some(_) => {
+        _saveMenuItem.enabled = true
+        _closeMenuItem.enabled = true
+      }
+    }
   }
 
-  def disableSave() {
-    _saveMenuItem.enabled = false
-  }
-
-  def enableClose() {
-    _closeMenuItem.enabled = true
-  }
-
-  def disableClose() {
-    _closeMenuItem.enabled = false
-  }
-
-  disableSave()
-  disableClose()
+  // FIXME: There must be a more elegant way to do this.
+  _saveMenuItem.enabled = false
+  _closeMenuItem.enabled = false
 }
 
 object CustomMenuBar {
