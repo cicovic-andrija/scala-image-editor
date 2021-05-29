@@ -67,10 +67,11 @@ class ApplicationFrame private extends scala.swing.MainFrame {
 
   def saveProject() {
     Project.instance match {
-      case Some(p) => try p.save() catch {
-        case _: Throwable => GuiComponents.statusBar.setErrorText(
-          GuiConstants.SB_FMT_SAVE_FAILED.format(p.file.getPath)
-        )
+      case Some(p) => try {
+        p.save()
+        GuiComponents.statusBar.setText(GuiConstants.SB_FMT_SAVE_SUCCEEDED.format(p.filePath))
+      } catch {
+        case _: Throwable => GuiComponents.statusBar.setErrorText(GuiConstants.SB_FMT_SAVE_FAILED.format(p.filePath))
       }
       case None => // should never happen
     }

@@ -26,7 +26,8 @@ object GuiConstants {
   val SB_TEXT_READY         : String    = "Ready."
   val SB_TEXT_PROJ_CLOSED   : String    = "Project closed."
   val SB_FMT_CORRUPTED_PROJ : String    = "Failed to open project from file %s. The file is possibly corrupted."
-  val SB_FMT_SAVE_FAILED    : String    = "Failed to save the project to the file %s."
+  val SB_FMT_SAVE_FAILED    : String    = "Failed to save the project to file %s."
+  val SB_FMT_SAVE_SUCCEEDED : String    = "Project saved to file %s."
   val OPEN_DIAG_FILE_DESC   : String    = "XML Files"
   val OPEN_DIAG_TITLE       : String    = "Select project file"
   val SHCUT_DIAG_TITLE      : String    = MI_SHORTCUTS
