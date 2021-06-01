@@ -2,9 +2,11 @@ package fotoshop.gui
 
 import fotoshop.proj.Project
 
+import javax.swing.border.TitledBorder
 import scala.swing._
 import javax.swing.filechooser.FileNameExtensionFilter
-import scala.swing.BorderPanel.Position.{Center, East, South}
+import scala.swing.BorderPanel.Position._
+import scala.swing.event.ButtonClicked
 
 class ApplicationFrame private extends scala.swing.MainFrame {
   title = GuiConstants.FRAME_TITLE
@@ -22,24 +24,33 @@ class ApplicationFrame private extends scala.swing.MainFrame {
     layout(GuiComponents.statusBar) = South
   }
 
+  val newProjectDialog = new NewProjectDialog(this)
+
   listenTo(CustomMenuBar.instance)
+  listenTo(newProjectDialog)
+
   deafTo(this)
   reactions += {
+    case _: NewProjectRequested => newProject()
     case _: OpenRequested => openProject()
     case _: CloseRequested => closeProject()
     case _: SaveRequested => saveProject()
     case _: ToggleToolsRequested => GuiComponents.toolsPanel.toggle()
     case _: ToggleShortcutsRequested => GuiComponents.shortcutsPanel.toggle()
-    case _: VersionRequested => Dialog.showMessage(null, GuiConstants.VER_MESSAGE, GuiConstants.VER_DIAG_TITLE)
+    case _: VersionRequested => Dialog.showMessage(this, GuiConstants.VER_MESSAGE, GuiConstants.VER_DIALOG_TITLE)
     case e: CustomEvent => publish(e)
+  }
+
+  def newProject(): Unit = {
+    newProjectDialog.visible = true
   }
 
   def openProject() {
     val fileChooser = new FileChooser() {
-      title = GuiConstants.OPEN_DIAG_TITLE
+      title = GuiConstants.OPEN_DIALOG_TITLE
       multiSelectionEnabled = false
       fileFilter = new FileNameExtensionFilter(
-        GuiConstants.OPEN_DIAG_FILE_DESC,
+        GuiConstants.OPEN_DIALOG_FILE_DESC,
         GuiConstants.EXT_XML,
         GuiConstants.EXT_XML
       )

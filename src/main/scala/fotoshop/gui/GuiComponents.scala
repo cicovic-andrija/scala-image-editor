@@ -11,7 +11,9 @@ import scala.swing.Swing.EmptyIcon
 
 object GuiComponents {
   val defaultBorder: LineBorder = new LineBorder(GuiConstants.COLOR_LIGHT_GRAY)
-  val blackBorder: LineBorder = new LineBorder(GuiConstants.COLOR_BLACK, GuiConstants.LINE_THICKNESS)
+  val blackBorder: LineBorder = new LineBorder(GuiConstants.COLOR_BLACK)
+  val redBorder: LineBorder = new LineBorder(GuiConstants.COLOR_RED)
+  val thickBlackBorder: LineBorder = new LineBorder(GuiConstants.COLOR_BLACK, GuiConstants.LINE_THICKNESS)
 
   val workspacePanel = new BorderPanel() with Refreshable {
     // no border
@@ -26,7 +28,7 @@ object GuiComponents {
 
     def preRefresh() {
       Project.instance match {
-        case Some(p) => scrollPane.contents = new Workspace(10, 10)
+        case Some(p) => scrollPane.contents = new Workspace(10, 10) // FIXME
         case None => scrollPane.contents = emptyWorkspace
       }
     }

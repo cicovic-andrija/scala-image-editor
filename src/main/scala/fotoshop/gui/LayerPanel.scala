@@ -6,7 +6,7 @@ import scala.swing.{BorderPanel, Dimension, Graphics2D}
 class LayerPanel(private val _image: Image) extends BorderPanel {
   require(_image != null)
 
-  border = GuiComponents.blackBorder
+  border = GuiComponents.thickBlackBorder
   preferredSize = GuiConstants.LAYER_PANEL_SIZE
   minimumSize = GuiConstants.LAYER_PANEL_SIZE
   maximumSize = GuiConstants.LAYER_PANEL_SIZE

@@ -4,6 +4,7 @@ import scala.swing.event.Event
 
 trait CustomEvent       extends Event
 trait MenuBarEvent      extends CustomEvent
+trait InputEvent        extends CustomEvent
 
 case class NewProjectRequested()      extends MenuBarEvent
 case class OpenRequested()            extends MenuBarEvent
@@ -13,3 +14,5 @@ case class ExitRequested()            extends MenuBarEvent
 case class ToggleToolsRequested()     extends MenuBarEvent
 case class ToggleShortcutsRequested() extends MenuBarEvent
 case class VersionRequested()         extends MenuBarEvent
+
+case class InputProvided(input: String) extends InputEvent

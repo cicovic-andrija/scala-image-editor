@@ -27,7 +27,7 @@ class Project private(private val _filePath: String, xmlData: xml.NodeSeq) {
 </Project>
 
   def save() {
-    if (!_dirty) return
+    if (!dirty) return
     XML.save(filePath, toXML, GuiConstants.XML_ENC_UTF_8, xmlDecl = true)
     _dirty = false
   }

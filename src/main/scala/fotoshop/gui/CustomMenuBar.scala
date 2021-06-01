@@ -5,6 +5,7 @@ import fotoshop.proj.Project
 import scala.swing._
 import scala.swing.event.Key
 
+// FIXME: Refactor to private[gui]; Rename to MyMenuBar or smt.
 class CustomMenuBar private extends MenuBar with DeafToSelf {
   // Help method
   private def newMenuItem(title: String, key: Key.Value, event: MenuBarEvent): MenuItem =
