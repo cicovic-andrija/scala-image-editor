@@ -5,8 +5,7 @@ import fotoshop.proj.Project
 import scala.swing._
 import scala.swing.event.Key
 
-// FIXME: Refactor to private[gui]; Rename to MyMenuBar or smt.
-class CustomMenuBar private extends MenuBar with DeafToSelf {
+class MyMenuBar private extends MenuBar with DeafToSelf {
   // Help method
   private def newMenuItem(title: String, key: Key.Value, event: MenuBarEvent): MenuItem =
     new MenuItem(Action(title){ publish(event) }) {
@@ -50,25 +49,22 @@ class CustomMenuBar private extends MenuBar with DeafToSelf {
 
   def refresh() {
     Project.instance match {
-      case None => {
+      case None =>
         _newMenuItem.enabled = true
         _openMenuItem.enabled = true
         _saveMenuItem.enabled = false
         _closeMenuItem.enabled = false
-      }
-      case Some(_) => {
+      case Some(_) =>
         _newMenuItem.enabled = false
         _openMenuItem.enabled = false
         _saveMenuItem.enabled = true
         _closeMenuItem.enabled = true
-      }
     }
   }
-
   refresh()
 }
 
-object CustomMenuBar {
-  private val _instance = new CustomMenuBar()
+object MyMenuBar {
+  private val _instance = new MyMenuBar()
   def instance = _instance
 }

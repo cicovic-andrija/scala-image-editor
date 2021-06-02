@@ -5,7 +5,8 @@ import fotoshop.util.Extensions._
 
 import java.io.File
 import scala.language.postfixOps
-import scala.xml.{Elem, XML}
+import scala.util._
+import scala.xml._
 
 class Project private(private val _filePath: String, xmlData: xml.NodeSeq) {
   private val _name: String = xmlData \@ "Name" ifEmpty { throw new Exception() } trim
@@ -37,9 +38,14 @@ object Project {
   private var _instance: Option[Project] = None
   def instance = _instance
 
+  def template(params: ProjectParams): xml.Elem = <Project Name={ params.name }>
+  <Output Width={ params.outputWidth } Height={ params.outputHeight }/>
+  <Layers>
+  </Layers>
+</Project>
+
   def load(file: File) {
     require(file != null)
-
     try {
       val xmlData = XML.loadFile(file)
       _instance = Some(new Project(file.getPath, xmlData \\ "Project"))
@@ -48,6 +54,9 @@ object Project {
       case _: Throwable => throw new IllegalArgumentException("Corrupted project file.")
     }
   }
+
+  def saveNew(params: ProjectParams, file: File) =
+    Try(XML.save(file.getPath, template(params), GuiConstants.XML_ENC_UTF_8, xmlDecl = true))
 
   def close() {
     _instance = None

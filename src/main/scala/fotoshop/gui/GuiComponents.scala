@@ -94,7 +94,6 @@ object GuiComponents {
     def setErrorText(text: String) {
       setText(GuiConstants.SB_ERROR_PREFIX + text)
     }
-
     setText(GuiConstants.SB_INIT_TEXT)
   }
 }

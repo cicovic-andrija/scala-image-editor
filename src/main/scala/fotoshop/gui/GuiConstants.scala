@@ -1,10 +1,10 @@
 package fotoshop.gui
 
+import fotoshop.proj.ProjectConstants._
+
 import java.awt.Color
 import scala.swing.Dimension
 
-// FIXME: Remove unused constants.
-// FIXME: Move some constants to ProjectConstants.
 object GuiConstants {
   val MI_WIDTH              : Int       = 128
   val SIDEBAR_WIDTH         : Int       = 288
@@ -14,8 +14,6 @@ object GuiConstants {
   val LINE_THICKNESS        : Int       = 2
   val V_GAP_SIZE            : Int       = 3
   val H_GAP_SIZE            : Int       = 5
-  val OUTPUT_MIN_W_H        : Int       = 32
-  val OUTPUT_MAX_W_H        : Int       = 4096
   val TEXT_FIELD_WIDTH      : Int       = 10
   val APP_VERSION           : String    = "0.1 (c) Andrija Cicovic, 2021."
   val FRAME_TITLE           : String    = "FotoShop"
@@ -26,8 +24,8 @@ object GuiConstants {
   val MI_SAVE_PROJECT       : String    = "Save Project..."
   val MI_CLOSE_PROJECT      : String    = "Close Project"
   val MI_EXIT               : String    = "Exit"
-  val MI_SHORTCUTS          : String    = "Toggle Shortcuts"
   val MI_TOOLS              : String    = "Toggle Tools"
+  val MI_SHORTCUTS          : String    = "Toggle Shortcuts"
   val MI_VERSION            : String    = "Version"
   val TB_TOOLS              : String    = "Tools"
   val TB_LAYERS             : String    = "Layers"
@@ -48,6 +46,7 @@ object GuiConstants {
   val SB_INIT_TEXT          : String    = "Initializing...Done."
   val SB_TEXT_READY         : String    = "Ready."
   val SB_TEXT_PROJ_CLOSED   : String    = "Project closed."
+  val SB_FMT_NEW_PROJ_FAIL  : String    = "Failed to create project %s. Please try again."
   val SB_FMT_CORRUPTED_PROJ : String    = "Failed to open project from file %s. The file is possibly corrupted."
   val SB_FMT_SAVE_FAILED    : String    = "Failed to save the project to file %s."
   val SB_FMT_SAVE_SUCCEEDED : String    = "Project saved to file %s."

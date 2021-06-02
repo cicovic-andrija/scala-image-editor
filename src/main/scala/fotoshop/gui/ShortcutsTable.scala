@@ -1,8 +1,7 @@
 package fotoshop.gui
 
-import javax.swing.border.LineBorder
 import scala.swing._
-import scala.swing.ScrollPane.BarPolicy
+import javax.swing.border.LineBorder
 
 object ShortcutsTable {
   private val shortcutsTableHeader: Seq[String] = Seq("Shortcut", "Description")

@@ -1,12 +1,11 @@
 package fotoshop.gui
 
-import fotoshop.proj.ProjectParams
+import fotoshop.proj.{ProjectConstants, ProjectParams}
+import fotoshop.util.Extensions.IntExtensions
 
-import java.io.File
-import java.nio.file.Paths
-import javax.swing.filechooser.FileNameExtensionFilter
-import scala.swing.FileChooser.SelectionMode
+import scala.util.Try
 import scala.swing._
+import scala.swing.FileChooser.SelectionMode
 
 class NewProjectDialog private[gui](owner: Window) extends Dialog(owner) {
   title = GuiConstants.NEW_PROJ_TITLE
@@ -16,32 +15,36 @@ class NewProjectDialog private[gui](owner: Window) extends Dialog(owner) {
 
   def placeholder = new Label()
 
-  def validateName(s: String): Boolean = {
-    s == "andrija"
-  }
-
-  def validateSize(s: String): Boolean = {
-    true
-  }
-
   val inputs = List(
-    new TextFieldValidator(GuiConstants.NEW_PROJ_NAME_LBL, validateName, GuiConstants.NEW_PROJ_NAME_FORMAT),
-    new TextFieldValidator(GuiConstants.NEW_PROJ_DEST_DIR_LBL,
-                           _ => true,
-                           new Button(Action(GuiConstants.NEW_PROJ_CHOOSE_BTN) { publish(FolderChooserRequested()) }),
-                           isEnabled = false),
-    new TextFieldValidator(GuiConstants.NEW_PROJ_WIDTH_LBL, validateSize, GuiConstants.NEW_PROJ_SIZE_FORMAT),
-    new TextFieldValidator(GuiConstants.NEW_PROJ_HEIGHT_LBL, validateSize, GuiConstants.NEW_PROJ_SIZE_FORMAT),
+    new TextFieldValidator(
+      GuiConstants.NEW_PROJ_NAME_LBL,
+      Predef.augmentString("[a-zA-Z0-9]+").r.matches(_),
+      GuiConstants.NEW_PROJ_NAME_FORMAT
+    ),
+    new TextFieldValidator(
+      GuiConstants.NEW_PROJ_DEST_DIR_LBL,
+      _.trim.nonEmpty,
+      new Button(Action(GuiConstants.NEW_PROJ_CHOOSE_BTN) { publish(FolderChooserRequested()) }),
+      isEnabled = false
+    ),
+    new TextFieldValidator(
+      GuiConstants.NEW_PROJ_WIDTH_LBL,
+      s => Try { s.toInt } getOrElse -1 between (ProjectConstants.OUTPUT_MIN_W_H, ProjectConstants.OUTPUT_MAX_W_H),
+      GuiConstants.NEW_PROJ_SIZE_FORMAT
+    ),
+    new TextFieldValidator(
+      GuiConstants.NEW_PROJ_HEIGHT_LBL,
+      s => Try { s.toInt } getOrElse -1 between (ProjectConstants.OUTPUT_MIN_W_H, ProjectConstants.OUTPUT_MAX_W_H),
+      GuiConstants.NEW_PROJ_SIZE_FORMAT
+    ),
   )
 
   private val createButton = new Button(Action(GuiConstants.NEW_PROJ_CREATE_BTN) {
     publish(ProjectParamsProvided(
-      ProjectParams(
         inputs(0).text,
         inputs(1).text,
         inputs(2).text,
-        inputs(3).text
-        )
+        inputs(3).text,
       )
     )
   }) { enabled = false }
@@ -98,7 +101,7 @@ class NewProjectDialog private[gui](owner: Window) extends Dialog(owner) {
     case _: FolderChooserRequested => chooseLocation()
     case e: ProjectParamsProvided =>
       closeOperation()
-      publish(e)
+      publish(ProjectParams(e.name, e.loc, e.w, e.h))
   }
   listenTo(inputGrid)
 }

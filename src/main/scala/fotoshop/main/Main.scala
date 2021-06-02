@@ -1,6 +1,7 @@
 package fotoshop.main
 
-import fotoshop.gui.{ApplicationFrame, ExitRequested}
+import fotoshop.gui._
+
 import scala.swing.SimpleSwingApplication
 
 object Main extends SimpleSwingApplication {

@@ -1,17 +1,20 @@
 package fotoshop.gui
 
-import fotoshop.proj.{Project, ProjectParams}
+import fotoshop.proj.ProjectConstants._
+import fotoshop.proj._
 
+import java.io.File
 import scala.swing._
+import scala.util._
 import javax.swing.filechooser.FileNameExtensionFilter
 import scala.swing.BorderPanel.Position._
 
 class ApplicationFrame private extends scala.swing.MainFrame {
   title = GuiConstants.FRAME_TITLE
   resizable = true
-  preferredSize = GuiConstants.FRAME_PREF_SIZE // FIXME: Remove size= in rest of the project.
+  preferredSize = GuiConstants.FRAME_PREF_SIZE
   minimumSize = GuiConstants.FRAME_MIN_SIZE
-  menuBar = CustomMenuBar.instance
+  menuBar = MyMenuBar.instance
   contents = new BorderPanel() {
     // no border
     layout(GuiComponents.workspacePanel) = Center
@@ -22,7 +25,7 @@ class ApplicationFrame private extends scala.swing.MainFrame {
 
   val newProjectDialog = new NewProjectDialog(this)
 
-  listenTo(CustomMenuBar.instance)
+  listenTo(MyMenuBar.instance)
   listenTo(newProjectDialog)
 
   deafTo(this)
@@ -34,11 +37,36 @@ class ApplicationFrame private extends scala.swing.MainFrame {
     case _: ToggleToolsRequested => GuiComponents.toolsPanel.toggle()
     case _: ToggleShortcutsRequested => GuiComponents.shortcutsPanel.toggle()
     case _: VersionRequested => Dialog.showMessage(this, GuiConstants.VER_MESSAGE, GuiConstants.VER_DIALOG_TITLE)
-    case ProjectParamsProvided(params) => newProject(params)
+    case params: ProjectParams => newProject(params)
   }
 
   def newProject(params: ProjectParams) {
+    val projFileName = params.name + EXT_XML
+    val outputFileName = params.name + EXT_JPG
+    val projFile = new File(params.location, projFileName)
+    Project.saveNew(params, projFile) match {
+      case Success(_) => openProject(projFile)
+      case Failure(_) => GuiComponents.statusBar.setErrorText(GuiConstants.SB_FMT_NEW_PROJ_FAIL.format(params.name))
+    }
+  }
 
+  def openProject(file: File) {
+    try {
+      Project.load(file)
+      Project.instance match {
+        case Some(_) =>
+          GuiComponents.workspacePanel.refresh()
+          GuiComponents.layersPanel.refresh()
+          MyMenuBar.instance.refresh()
+          refreshTitle()
+          GuiComponents.statusBar.clear()
+        case None => throw new Exception() // Project.load failed without throwing an exception.
+      }
+    } catch {
+      case _: Throwable => GuiComponents.statusBar.setErrorText(
+        GuiConstants.SB_FMT_CORRUPTED_PROJ.format(file.getPath)
+      )
+    }
   }
 
   def openProject() {
@@ -53,22 +81,8 @@ class ApplicationFrame private extends scala.swing.MainFrame {
     }
 
     fileChooser.showOpenDialog(this)
-    if (fileChooser.selectedFile != null) try {
-        Project.load(fileChooser.selectedFile)
-        Project.instance match {
-          case Some(_) => {
-            GuiComponents.workspacePanel.refresh()
-            GuiComponents.layersPanel.refresh()
-            CustomMenuBar.instance.refresh()
-            refreshTitle()
-            GuiComponents.statusBar.clear()
-          }
-          case None => throw new Exception() // Project.load failed without throwing an exception.
-        }
-    } catch {
-        case _: Throwable => GuiComponents.statusBar.setErrorText(
-            GuiConstants.SB_FMT_CORRUPTED_PROJ.format(fileChooser.selectedFile.getPath)
-          )
+    if (fileChooser.selectedFile != null) {
+      openProject(fileChooser.selectedFile)
     }
   }
 
@@ -88,7 +102,7 @@ class ApplicationFrame private extends scala.swing.MainFrame {
     Project.close()
     GuiComponents.workspacePanel.refresh()
     GuiComponents.layersPanel.refresh()
-    CustomMenuBar.instance.refresh()
+    MyMenuBar.instance.refresh()
     refreshTitle()
     GuiComponents.statusBar.setText(GuiConstants.SB_TEXT_PROJ_CLOSED)
   }

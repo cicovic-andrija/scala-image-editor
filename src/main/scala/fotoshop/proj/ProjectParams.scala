@@ -1,3 +1,5 @@
 package fotoshop.proj
 
-case class ProjectParams(name: String, location: String, outputWidth: String, outputHeight: String)
+import scala.swing.event.Event
+
+case class ProjectParams(name: String, location: String, outputWidth: String, outputHeight: String) extends Event
