@@ -1,6 +1,6 @@
 package fotoshop.gui
 
-import scala.language.reflectiveCalls // FIXME: Figure out why this is needed.
+import scala.language.reflectiveCalls
 
 trait Toggleable {
   this: {

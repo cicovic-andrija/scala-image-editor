@@ -4,6 +4,7 @@ import java.awt.Color
 import scala.swing.Dimension
 
 // FIXME: Remove unused constants.
+// FIXME: Move some constants to ProjectConstants.
 object GuiConstants {
   val MI_WIDTH              : Int       = 128
   val SIDEBAR_WIDTH         : Int       = 288
@@ -31,15 +32,16 @@ object GuiConstants {
   val TB_TOOLS              : String    = "Tools"
   val TB_LAYERS             : String    = "Layers"
   val TB_SHORTCUTS          : String    = "Shortcuts"
-  val NEW_PROJ_DIALOG_TITLE : String    = "New Project"
-  val NEW_PROJ_DIALOG_NAME_LABEL : String = "Project Name:"
-  val NEW_PROJ_DIALOG_DEST_DIR_LABEL: String = "Location:"
-  val NEW_PROJ_DIALOG_WIDTH_LABEL : String = "Width:"
-  val NEW_PROJ_DIALOG_HEIGHT_LABEL : String = "Height:"
-  val NEW_PROJ_DIALOG_CHOOSE_BTN : String = "Choose..."
-  val NEW_PROJ_DIALOG_CREATE_BTN : String = "Create"
-  val NEW_PROJ_DIALOG_MIN_MAX_LBL : String = "min: %d | max: %d".format(OUTPUT_MIN_W_H, OUTPUT_MAX_W_H)
-  val NEW_PROJ_DIALOG_NAME_FORMAT : String = "a-z A-Z 0-9 _"
+  val NEW_PROJ_TITLE        : String    = "New Project"
+  val NEW_PROJ_NAME_LBL     : String    = "Project Name:"
+  val NEW_PROJ_DEST_DIR_LBL : String    = "Location:"
+  val NEW_PROJ_WIDTH_LBL    : String    = "Width:"
+  val NEW_PROJ_HEIGHT_LBL   : String    = "Height:"
+  val NEW_PROJ_CHOOSE_BTN   : String    = "Choose..."
+  val NEW_PROJ_CREATE_BTN   : String    = "Create"
+  val NEW_PROJ_SIZE_FORMAT  : String    = "from %d to %d".format(OUTPUT_MIN_W_H, OUTPUT_MAX_W_H)
+  val NEW_PROJ_NAME_FORMAT  : String    = "a-z A-Z _ 0-9"
+  val DEST_DIR_DIALOG_TITLE : String     = "Select project location"
   val EXT_XML               : String    = "xml"
   val XML_ENC_UTF_8         : String    = "UTF-8"
   val SB_ERROR_PREFIX       : String    = "ERROR: "
@@ -55,9 +57,7 @@ object GuiConstants {
   val VER_MESSAGE           : String    = FRAME_TITLE + " " + APP_VERSION
   val FRAME_MIN_SIZE        : Dimension = new Dimension(768, 432)
   val FRAME_PREF_SIZE       : Dimension = new Dimension(1600, 900)
-  val DIAG_MIN_SIZE         : Dimension = new Dimension(192, 108)
   val LAYER_PANEL_SIZE      : Dimension = new Dimension(LAYER_PANEL_WIDTH, LAYER_PANEL_HEIGHT)
-  val DIAG_PREF_SIZE        : Dimension = DIAG_MIN_SIZE
   val COLOR_LIGHT_GRAY      : Color     = Color.LIGHT_GRAY
   val COLOR_BLACK           : Color     = new Color(0, 0, 0)
   val COLOR_WHITE           : Color     = new Color(255, 255, 255)

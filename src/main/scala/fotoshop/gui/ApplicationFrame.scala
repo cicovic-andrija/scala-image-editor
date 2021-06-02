@@ -1,21 +1,16 @@
 package fotoshop.gui
 
-import fotoshop.proj.Project
+import fotoshop.proj.{Project, ProjectParams}
 
-import javax.swing.border.TitledBorder
 import scala.swing._
 import javax.swing.filechooser.FileNameExtensionFilter
 import scala.swing.BorderPanel.Position._
-import scala.swing.event.ButtonClicked
 
 class ApplicationFrame private extends scala.swing.MainFrame {
   title = GuiConstants.FRAME_TITLE
   resizable = true
-  // FIXME: Needed for centerOnScreen() to work(?).
-  size = GuiConstants.FRAME_PREF_SIZE
-  preferredSize = GuiConstants.FRAME_PREF_SIZE
+  preferredSize = GuiConstants.FRAME_PREF_SIZE // FIXME: Remove size= in rest of the project.
   minimumSize = GuiConstants.FRAME_MIN_SIZE
-  centerOnScreen()
   menuBar = CustomMenuBar.instance
   contents = new BorderPanel() {
     // no border
@@ -23,6 +18,7 @@ class ApplicationFrame private extends scala.swing.MainFrame {
     layout(GuiComponents.sidebarPanel) = East
     layout(GuiComponents.statusBar) = South
   }
+  centerOnScreen() // must be after contents is defined
 
   val newProjectDialog = new NewProjectDialog(this)
 
@@ -31,18 +27,18 @@ class ApplicationFrame private extends scala.swing.MainFrame {
 
   deafTo(this)
   reactions += {
-    case _: NewProjectRequested => newProject()
+    case _: NewProjectRequested => newProjectDialog.visible = true
     case _: OpenRequested => openProject()
     case _: CloseRequested => closeProject()
     case _: SaveRequested => saveProject()
     case _: ToggleToolsRequested => GuiComponents.toolsPanel.toggle()
     case _: ToggleShortcutsRequested => GuiComponents.shortcutsPanel.toggle()
     case _: VersionRequested => Dialog.showMessage(this, GuiConstants.VER_MESSAGE, GuiConstants.VER_DIALOG_TITLE)
-    case e: CustomEvent => publish(e)
+    case ProjectParamsProvided(params) => newProject(params)
   }
 
-  def newProject(): Unit = {
-    newProjectDialog.visible = true
+  def newProject(params: ProjectParams) {
+
   }
 
   def openProject() {
@@ -56,7 +52,7 @@ class ApplicationFrame private extends scala.swing.MainFrame {
       )
     }
 
-    fileChooser.showOpenDialog(null)
+    fileChooser.showOpenDialog(this)
     if (fileChooser.selectedFile != null) try {
         Project.load(fileChooser.selectedFile)
         Project.instance match {

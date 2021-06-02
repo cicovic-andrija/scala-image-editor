@@ -1,5 +1,7 @@
 package fotoshop.gui
 
+import fotoshop.proj.ProjectParams
+
 import scala.swing.event.Event
 
 trait CustomEvent       extends Event
@@ -15,4 +17,6 @@ case class ToggleToolsRequested()     extends MenuBarEvent
 case class ToggleShortcutsRequested() extends MenuBarEvent
 case class VersionRequested()         extends MenuBarEvent
 
-case class InputProvided(input: String) extends InputEvent
+case class InputProvided(valid: Boolean)                extends InputEvent
+case class FolderChooserRequested()                     extends InputEvent
+case class ProjectParamsProvided(params: ProjectParams) extends InputEvent
