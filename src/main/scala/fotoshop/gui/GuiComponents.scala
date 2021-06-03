@@ -14,6 +14,7 @@ object GuiComponents {
   val blackBorder: LineBorder = new LineBorder(GuiConstants.COLOR_BLACK)
   val redBorder: LineBorder = new LineBorder(GuiConstants.COLOR_RED)
   val thickBlackBorder: LineBorder = new LineBorder(GuiConstants.COLOR_BLACK, GuiConstants.LINE_THICKNESS)
+  val thickRedBorder: LineBorder = new LineBorder(GuiConstants.COLOR_RED, GuiConstants.LINE_THICKNESS)
 
   val workspacePanel = new BorderPanel() with Refreshable {
     // no border
@@ -34,15 +35,23 @@ object GuiComponents {
     }
   }
 
-  val layersPanel = new BorderPanel with Refreshable {
+  val layersPanel = new BorderPanel with Refreshable with DeafToSelf {
     border = new TitledBorder(GuiConstants.TB_LAYERS)
-    val scrollPane = new ScrollPane() {
+    val scrollPane = new ScrollPane() with DeafToSelf {
       border = null // no border
       verticalScrollBarPolicy = BarPolicy.AsNeeded
       horizontalScrollBarPolicy = BarPolicy.AsNeeded
       contents = LayerList.instance
+      listenTo(LayerList.instance)
+      reactions += {
+        case e: LayerToggled => publish(e)
+      }
     }
     layout(scrollPane) = Center
+    listenTo(scrollPane)
+    reactions += {
+      case e: LayerToggled => publish(e)
+    }
 
     def preRefresh() {
       LayerList.instance.refreshLayers()
@@ -68,13 +77,18 @@ object GuiComponents {
     layout(scrollPane) = Center
   }
 
-  val sidebarPanel = new BorderPanel {
+  val sidebarPanel = new BorderPanel with DeafToSelf {
     border = GuiComponents.defaultBorder
     preferredSize = new Dimension(GuiConstants.SIDEBAR_WIDTH, peer.getPreferredSize.height)
     minimumSize = new Dimension(GuiConstants.SIDEBAR_WIDTH, peer.getPreferredSize.height)
     layout(GuiComponents.layersPanel) = Center
     layout(GuiComponents.toolsPanel) = North
     layout(GuiComponents.shortcutsPanel) = South
+
+    listenTo(layersPanel)
+    reactions += {
+      case e: LayerToggled => publish(e)
+    }
   }
 
   val statusBar = new BorderPanel {

@@ -18,3 +18,5 @@ case class VersionRequested()         extends MenuBarEvent
 case class InputProvided(valid: Boolean)                                          extends InputEvent
 case class FolderChooserRequested()                                               extends InputEvent
 case class ProjectParamsProvided(name: String, loc: String, w: String, h: String) extends InputEvent
+
+case class LayerToggled() extends CustomEvent

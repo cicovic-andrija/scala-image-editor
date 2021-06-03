@@ -10,8 +10,8 @@ import scala.xml._
 
 class Project private(private val _filePath: String, xmlData: xml.NodeSeq) {
   private val _name: String = xmlData \@ "Name" ifEmpty { throw new Exception() } trim
-  private val _output = new Output(xmlData \ "Output")
-  private var _layers = xmlData \ "Layers" \ "Layer" map { new Layer(_) }
+  private val _output = new Output(owner = this, xmlData \ "Output")
+  private var _layers = xmlData \ "Layers" \ "Layer" map { new Layer(owner = this, _) }
   private var _dirty = false
 
   def name = _name
@@ -26,6 +26,10 @@ class Project private(private val _filePath: String, xmlData: xml.NodeSeq) {
     { layers map { _.toXML } }
   </Layers>
 </Project>
+
+  def markDirty() {
+    _dirty = true
+  }
 
   def save() {
     if (!dirty) return
@@ -45,7 +49,6 @@ object Project {
 </Project>
 
   def load(file: File) {
-    require(file != null)
     try {
       val xmlData = XML.loadFile(file)
       _instance = Some(new Project(file.getPath, xmlData \\ "Project"))

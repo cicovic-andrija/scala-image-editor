@@ -7,7 +7,7 @@ import scala.util.Try
 import scala.swing._
 import scala.swing.FileChooser.SelectionMode
 
-class NewProjectDialog private[gui](owner: Window) extends Dialog(owner) {
+class NewProjectDialog (owner: Window) extends Dialog(owner) {
   title = GuiConstants.NEW_PROJ_TITLE
   visible = false
   modal = true

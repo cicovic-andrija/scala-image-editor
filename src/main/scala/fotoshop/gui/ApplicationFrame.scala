@@ -23,10 +23,11 @@ class ApplicationFrame private extends scala.swing.MainFrame {
   }
   centerOnScreen() // must be after contents is defined
 
-  val newProjectDialog = new NewProjectDialog(this)
+  val newProjectDialog = new NewProjectDialog(owner = this)
 
   listenTo(MyMenuBar.instance)
   listenTo(newProjectDialog)
+  listenTo(GuiComponents.sidebarPanel)
 
   deafTo(this)
   reactions += {
@@ -38,12 +39,11 @@ class ApplicationFrame private extends scala.swing.MainFrame {
     case _: ToggleShortcutsRequested => GuiComponents.shortcutsPanel.toggle()
     case _: VersionRequested => Dialog.showMessage(this, GuiConstants.VER_MESSAGE, GuiConstants.VER_DIALOG_TITLE)
     case params: ProjectParams => newProject(params)
+    case _: LayerToggled => GuiComponents.workspacePanel.repaint()
   }
 
   def newProject(params: ProjectParams) {
-    val projFileName = params.name + EXT_XML
-    val outputFileName = params.name + EXT_JPG
-    val projFile = new File(params.location, projFileName)
+    val projFile = new File(params.location, params.name + EXT_XML)
     Project.saveNew(params, projFile) match {
       case Success(_) => openProject(projFile)
       case Failure(_) => GuiComponents.statusBar.setErrorText(GuiConstants.SB_FMT_NEW_PROJ_FAIL.format(params.name))
@@ -88,11 +88,9 @@ class ApplicationFrame private extends scala.swing.MainFrame {
 
   def saveProject() {
     Project.instance match {
-      case Some(p) => try {
-        p.save()
-        GuiComponents.statusBar.setText(GuiConstants.SB_FMT_SAVE_SUCCEEDED.format(p.filePath))
-      } catch {
-        case _: Throwable => GuiComponents.statusBar.setErrorText(GuiConstants.SB_FMT_SAVE_FAILED.format(p.filePath))
+      case Some(p) => Try(p.save()) match {
+        case Success(_) => GuiComponents.statusBar.setText(GuiConstants.SB_FMT_SAVE_SUCCEEDED.format(p.filePath))
+        case Failure(_) => GuiComponents.statusBar.setErrorText(GuiConstants.SB_FMT_SAVE_FAILED.format(p.filePath))
       }
       case None => // should never happen
     }

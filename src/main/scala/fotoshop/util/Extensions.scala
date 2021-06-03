@@ -7,5 +7,6 @@ object Extensions {
 
   implicit class IntExtensions(i: Int) {
     def between(min: Int, max: Int): Boolean = i >= min && i <= max
+    def mask(m: Int) = (i & m) != 0
   }
 }

@@ -14,7 +14,7 @@ class Workspace(width: Int, height: Int) extends Panel {
   override def paintComponent(g: Graphics2D) {
     super.paintComponent(g)
     Project.instance match {
-      case Some(p) => p.layers foreach { l => g.drawImage(l.image, 0, 0, null) }
+      case Some(p) => p.layers foreach { l => if (l.visible) g.drawImage(l.image, 0, 0, null) }
       case None =>
     }
   }

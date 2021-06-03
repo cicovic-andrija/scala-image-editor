@@ -2,7 +2,7 @@ package fotoshop.proj
 
 import scala.language.postfixOps
 
-class Output private[proj] (xmlData: xml.NodeSeq) {
+class Output private[proj](private val owner: Project, xmlData: xml.NodeSeq) {
   private val _width: Int = xmlData  \@ "Width" toInt
   private val _height: Int = xmlData \@ "Height" toInt
 
