@@ -8,7 +8,6 @@ import java.awt.Image
 import scala.swing.event._
 
 class LayerPanel(private val layer: Layer) extends BorderPanel {
-  require(layer != null)
 
   preferredSize = GuiConstants.LAYER_PANEL_SIZE
   minimumSize = GuiConstants.LAYER_PANEL_SIZE

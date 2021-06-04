@@ -55,6 +55,8 @@ object GuiConstants {
   val SB_LOAD_IMG_FAILED    : String    = "Failed to load image."
   val SB_OP_NOT_SUPPORTED   : String    = "Attempted operation is not supported."
   val SB_FMT_SAVE_SUCCEEDED : String    = "Project saved to file %s."
+  val SB_FMT_IMG_SAVE_SUCC  : String    = "Image saved to file %s."
+  val SB_TEXT_IMG_SAVE_FAIL : String    = "Failed to generate an image."
   val OPEN_DIALOG_FILE_DESC : String    = "XML Files"
   val OPEN_DIALOG_TITLE     : String    = "Select project file"
   val LOAD_IMG_DIALOG_TITLE : String    = "Select image file"

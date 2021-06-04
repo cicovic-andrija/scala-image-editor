@@ -7,14 +7,12 @@ import scala.util.Try
 import scala.swing._
 import scala.swing.FileChooser.SelectionMode
 
-class NewProjectDialog (owner: Window) extends Dialog(owner) {
+class NewProjectDialog(owner: Window) extends Dialog(owner) {
 
   title = GuiConstants.NEW_PROJ_TITLE
   visible = false
   modal = true
   resizable = false
-
-  def placeholder = new Label()
 
   val inputs = List(
     new TextFieldValidator(
@@ -41,14 +39,9 @@ class NewProjectDialog (owner: Window) extends Dialog(owner) {
   )
 
   private val createButton = new Button(Action(GuiConstants.NEW_PROJ_CREATE_BTN) {
-    publish(ProjectParamsProvided(
-        inputs(0).text,
-        inputs(1).text,
-        inputs(2).text,
-        inputs(3).text,
-      )
-    )
-  }) { enabled = false }
+    publish(CreateProjectRequested(inputs(0).text, inputs(1).text, inputs(2).text, inputs(3).text))
+  })
+  createButton.enabled = false
 
   override def closeOperation() {
     createButton.enabled = false
@@ -71,6 +64,8 @@ class NewProjectDialog (owner: Window) extends Dialog(owner) {
       }
     }
   }
+
+  def placeholder = new Label()
 
   val inputGrid = new GridPanel(5, 3) with DeafToSelf {
     hGap = GuiConstants.H_GAP_SIZE
@@ -100,9 +95,9 @@ class NewProjectDialog (owner: Window) extends Dialog(owner) {
     case InputProvided(false) => createButton.enabled = false
     case InputProvided(true) => createButton.enabled = inputs.forall(_.valid)
     case _: FolderChooserRequested => chooseLocation()
-    case e: ProjectParamsProvided =>
+    case e: CreateProjectRequested =>
       closeOperation()
-      publish(ProjectParams(e.name, e.loc, e.w, e.h))
+      publish(ProjectParamsProvided(ProjectParams(e.name, e.loc, e.w, e.h)))
   }
   listenTo(inputGrid)
   owner.listenTo(this)

@@ -39,7 +39,7 @@ class MyMenuBar private extends MenuBar with DeafToSelf {
     // Note: For whatever reason, contents length here is 0! There is no way to iterate it.
   }
 
-  def refresh() {
+  def updateAvailableMenus() {
     Project.instance match {
       case None =>
         _newMenuItem.enabled = true
@@ -53,7 +53,7 @@ class MyMenuBar private extends MenuBar with DeafToSelf {
         _closeMenuItem.enabled = true
     }
   }
-  refresh()
+  updateAvailableMenus()
 }
 
 object MyMenuBar {

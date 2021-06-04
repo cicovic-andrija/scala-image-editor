@@ -3,11 +3,14 @@ package fotoshop.gui
 import fotoshop.proj.ProjectConstants._
 import fotoshop.proj._
 import fotoshop.util.Extensions.IntExtensions
+import GuiComponents._
 
-import java.io.File
+import java.awt.image.BufferedImage
 import scala.swing._
 import scala.util._
 import scala.swing.event._
+import java.io.File
+import javax.imageio.ImageIO
 import javax.swing.filechooser.FileNameExtensionFilter
 
 class ApplicationFrame private extends MainFrame {
@@ -17,7 +20,7 @@ class ApplicationFrame private extends MainFrame {
   preferredSize = GuiConstants.FRAME_PREF_SIZE
   minimumSize = GuiConstants.FRAME_MIN_SIZE
   menuBar = MyMenuBar.instance
-  contents = GuiComponents.mainPanel
+  contents = mainPanel
   centerOnScreen()
 
   val newProjectDialog = new NewProjectDialog(owner = this)
@@ -27,60 +30,59 @@ class ApplicationFrame private extends MainFrame {
     case _: OpenRequested => openProject()
     case _: CloseRequested => closeProject()
     case _: SaveRequested => saveProject()
-    case _: ToggleToolsRequested => GuiComponents.toolsPanel.toggle()
-    case _: ToggleShortcutsRequested => GuiComponents.shortcutsPanel.toggle()
+    case _: ToggleToolsRequested => toolsPanel.toggle()
+    case _: ToggleShortcutsRequested => shortcutsPanel.toggle()
     case _: VersionRequested => Dialog.showMessage(this, GuiConstants.VER_MESSAGE, GuiConstants.VER_DIALOG_TITLE)
-    case _: LayerToggled => GuiComponents.workspacePanel.repaint()
-    case params: ProjectParams => newProject(params)
+    case _: LayerToggled => workspacePanel.repaint() // FIXME(?)
+    case ProjectParamsProvided(params) => newProject(params)
     case e: ExitRequested => publish(e)
     case KeyPressed(_, key, mod, _) => keyHandler(key, mod)
   }
 
-  // register to listen to all events from static components
   deafTo(this)
-  GuiComponents.mainPanel.requestFocus()
-  listenTo(GuiComponents.mainPanel.keys)
+  mainPanel.requestFocus()
+  listenTo(mainPanel.keys)
   listenTo(MyMenuBar.instance)
   listenTo(LayerList.instance)
 
   def keyHandler(key: Key.Value, mod: Key.Modifiers) {
     Project.instance match {
-      case Some(p) => key match {
-        case Key.O => loadImage(p)
-        case Key.S => saveOutput(p)
-        case Key.D => deleteLayers(p)
-        case Key.Up if mod mask Key.Modifier.Control => moveUp(p)
-        case Key.Down if mod mask Key.Modifier.Control => moveDown(p)
+      case Some(project) => key match {
+        case Key.O => loadImage(project)
+        case Key.S => saveOutput(project)
+        case Key.D => deleteLayers(project)
+        case Key.G => project.toggleGuideline(); workspacePanel.repaint()
+        case Key.Up if mod mask Key.Modifier.Control => moveUp(project)
+        case Key.Down if mod mask Key.Modifier.Control => moveDown(project)
         case _ =>
       }
-      case None => // do nothing
+      case None =>
     }
   }
 
   def newProject(params: ProjectParams) {
-    val projFile = new File(params.location, params.name + EXT_XML)
-    Project.saveNew(params, projFile) match {
-      case Success(_) => openProject(projFile)
+    val projectFile = new File(params.location, params.name + EXT_XML)
+    Try { Project.saveNew(params, projectFile) } match {
+      case Success(_) => openProject(projectFile)
       case Failure(_) => GuiComponents.statusBar.setErrorText(GuiConstants.SB_FMT_NEW_PROJ_FAIL.format(params.name))
-    } // FIXME: finally close file?
+    }
   }
 
   def openProject(file: File) {
-    try {
-      Project.load(file)
-      Project.instance match {
-        case Some(_) =>
-          GuiComponents.workspacePanel.refresh()
-          GuiComponents.layersPanel.refresh()
-          MyMenuBar.instance.refresh()
-          refreshTitle()
-          GuiComponents.statusBar.clear()
-        case None => throw new Exception() // Project.load failed without throwing an exception.
-      }
-    } catch {
-      case _: Throwable => GuiComponents.statusBar.setErrorText(
-        GuiConstants.SB_FMT_CORRUPTED_PROJ.format(file.getPath)
-      ) // FIXME: finally close file?
+    Try { Project.load(file) } match {
+      case Success(_) =>
+        Project.instance match {
+          case Some(_) =>
+            workspacePanel.reset()
+            layersPanel.refresh()
+            MyMenuBar.instance.updateAvailableMenus()
+            updateApplicationTitle()
+            statusBar.clear()
+          case None =>
+            statusBar.setErrorText(GuiConstants.SB_FMT_CORRUPTED_PROJ.format(file.getPath))
+        }
+      case Failure(_) =>
+        statusBar.setErrorText(GuiConstants.SB_FMT_CORRUPTED_PROJ.format(file.getPath))
     }
   }
 
@@ -102,21 +104,21 @@ class ApplicationFrame private extends MainFrame {
 
   def saveProject() {
     Project.instance match {
-      case Some(p) => Try(p.save()) match {
-        case Success(_) => GuiComponents.statusBar.setText(GuiConstants.SB_FMT_SAVE_SUCCEEDED.format(p.filePath))
-        case Failure(_) => GuiComponents.statusBar.setErrorText(GuiConstants.SB_FMT_SAVE_FAILED.format(p.filePath))
+      case Some(p) => Try { p.save() } match {
+        case Success(_) => statusBar.setText(GuiConstants.SB_FMT_SAVE_SUCCEEDED.format(p.filePath))
+        case Failure(_) => statusBar.setErrorText(GuiConstants.SB_FMT_SAVE_FAILED.format(p.filePath))
       }
-      case None => // should never happen
+      case None =>
     }
   }
 
   def closeProject() {
-    Project.close() // FIXME: match against Project.instance?
-    GuiComponents.workspacePanel.refresh()
-    GuiComponents.layersPanel.refresh()
-    MyMenuBar.instance.refresh()
-    refreshTitle()
-    GuiComponents.statusBar.setText(GuiConstants.SB_TEXT_PROJ_CLOSED)
+    Project.close()
+    workspacePanel.reset()
+    layersPanel.refresh()
+    MyMenuBar.instance.updateAvailableMenus()
+    updateApplicationTitle()
+    statusBar.setText(GuiConstants.SB_TEXT_PROJ_CLOSED)
   }
 
   def loadImage(project: Project) {
@@ -133,54 +135,62 @@ class ApplicationFrame private extends MainFrame {
 
     fileChooser.showOpenDialog(this)
     if (fileChooser.selectedFile != null) {
-      Try(project.loadImage(fileChooser.selectedFile.getPath)) match {
+      Try { project.loadImage(fileChooser.selectedFile.getPath) } match {
         case Success(layer) =>
           LayerList.instance.addLayerPanel(layer)
-          GuiComponents.workspacePanel.repaint()
+          LayerList.instance.repaint()
+          workspacePanel.repaint()
         case Failure(_) =>
-          GuiComponents.statusBar.setErrorText(GuiConstants.SB_LOAD_IMG_FAILED)
+          statusBar.setErrorText(GuiConstants.SB_LOAD_IMG_FAILED)
       }
     }
   }
 
   def deleteLayers(project: Project) {
     project.deleteSelectedLayers()
-    GuiComponents.layersPanel.refresh()
-    GuiComponents.workspacePanel.repaint()
+    layersPanel.refresh()
+    workspacePanel.repaint()
   }
 
   def moveUp(project: Project) = {
     if (!project.moveLayerUp()) {
-      GuiComponents.statusBar.setErrorText(GuiConstants.SB_OP_NOT_SUPPORTED)
+      statusBar.setErrorText(GuiConstants.SB_OP_NOT_SUPPORTED)
     } else {
-      GuiComponents.layersPanel.refresh()
-      GuiComponents.workspacePanel.repaint()
+      layersPanel.refresh()
+      workspacePanel.repaint()
+      statusBar.clear()
     }
   }
 
   def moveDown(project: Project) = {
     if (!project.moveLayerDown()) {
-      GuiComponents.statusBar.setErrorText(GuiConstants.SB_OP_NOT_SUPPORTED)
+      statusBar.setErrorText(GuiConstants.SB_OP_NOT_SUPPORTED)
     } else {
-      GuiComponents.layersPanel.refresh()
-      GuiComponents.workspacePanel.repaint()
+      layersPanel.refresh()
+      workspacePanel.repaint()
+      statusBar.clear()
     }
   }
 
   def saveOutput(project: Project) {
-//    val image = new BufferedImage(GuiComponents.workspacePanel.size.width,
-//      GuiComponents.workspacePanel.size.height,
-//      BufferedImage.TYPE_INT_RGB)
-//    val g2d: Graphics2D = image.createGraphics()
-//    GuiComponents.workspacePanel.peer.print(g2d)
-//    ImageIO.write(image, "JPG", new File("test.jpg"))
-//    g2d.dispose()
+    val image = new BufferedImage(
+      project.output.width,
+      project.output.height,
+      BufferedImage.TYPE_INT_RGB
+    )
+    val g2d: Graphics2D = image.createGraphics()
+    workspacePanel.workspace.peer.print(g2d)
+    Try { ImageIO.write(image, ProjectConstants.JPG_FORMAT_NAME, new File("test.jpg")) } match {
+      case Success(_) => statusBar.setText(GuiConstants.SB_FMT_IMG_SAVE_SUCC.format("test.jpg"))
+      case Failure(_) => statusBar.setErrorText(GuiConstants.SB_TEXT_IMG_SAVE_FAIL)
+    }
+    g2d.dispose()
   }
 
-  def refreshTitle() {
+  def updateApplicationTitle() {
     Project.instance match {
+      case Some(project) => title = GuiConstants.FRAME_TITLE + " - " + project.name
       case None => title = GuiConstants.FRAME_TITLE
-      case Some(p) => title = GuiConstants.FRAME_TITLE + " - " + p.name
     }
   }
 }

@@ -3,13 +3,14 @@ package fotoshop.gui
 // FIXME: Fix all imports in whole project when done.
 import fotoshop.proj.Project
 
-import javax.swing.border.{BevelBorder, LineBorder, TitledBorder}
 import scala.swing._
+import javax.swing.border._
 import scala.swing.BorderPanel.Position._
 import scala.swing.ScrollPane.BarPolicy
 import scala.swing.Swing.EmptyIcon
 
 object GuiComponents {
+
   val defaultBorder: LineBorder = new LineBorder(GuiConstants.COLOR_LIGHT_GRAY)
   val blackBorder: LineBorder = new LineBorder(GuiConstants.COLOR_BLACK)
   val redBorder: LineBorder = new LineBorder(GuiConstants.COLOR_RED)
@@ -17,26 +18,32 @@ object GuiComponents {
   val thickRedBorder: LineBorder = new LineBorder(GuiConstants.COLOR_RED, GuiConstants.LINE_THICKNESS)
   val thickGreenBorder: LineBorder = new LineBorder(GuiConstants.COLOR_GREEN, GuiConstants.LINE_THICKNESS)
 
-  val workspacePanel = new BorderPanel() with Refreshable {
+  val workspacePanel = new BorderPanel() {
     // no border
-    val emptyWorkspace = new Workspace(0, 0)
+    var workspace: Workspace = _
     val scrollPane =  new ScrollPane() {
       border = null // no border
       verticalScrollBarPolicy = BarPolicy.AsNeeded
       horizontalScrollBarPolicy = BarPolicy.AsNeeded
-      contents = emptyWorkspace
+      contents = Workspace.Empty
     }
-    layout(scrollPane) = Center
+    layout(scrollPane ) = Center
 
-    def preRefresh() {
+    def reset() {
       Project.instance match {
-        case Some(p) => scrollPane.contents = new Workspace(10, 10) // FIXME
-        case None => scrollPane.contents = emptyWorkspace
+        case Some(project) =>
+          workspace = new Workspace(project)
+          scrollPane.contents = workspace
+        case None =>
+          workspace = null
+          scrollPane.contents = Workspace.Empty
       }
+      revalidate()
+      repaint()
     }
   }
 
-  val layersPanel = new BorderPanel with Refreshable {
+  val layersPanel = new BorderPanel {
     border = new TitledBorder(GuiConstants.TB_LAYERS)
     val scrollPane = new ScrollPane() {
       border = null // no border
@@ -47,8 +54,9 @@ object GuiComponents {
     }
     layout(scrollPane) = Center
 
-    def preRefresh() {
+    def refresh() {
       LayerList.instance.reloadLayers()
+      LayerList.instance.repaint()
     }
   }
 

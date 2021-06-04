@@ -13,15 +13,15 @@ class Project private(private val _filePath: String, xmlData: xml.NodeSeq) {
     throw new Exception()
   } trim
   private val _output = new Output(owner = this, xmlData \ "Output")
-  private var _layers = ListBuffer(xmlData \ "Layers" \ "Layer" map {
-    new Layer(owner = this, _)
-  }: _*)
+  private var _layers = ListBuffer(xmlData \ "Layers" \ "Layer" map { new Layer(owner = this, _) }: _*)
   private var _dirty = false
+  private var _guideline = false
 
   def name = _name
   def output = _output
   def layers = _layers
   def dirty = _dirty
+  def guideline = _guideline
   def filePath = _filePath
 
   def toXML: xml.Elem = <Project Name={name}>
@@ -36,6 +36,10 @@ class Project private(private val _filePath: String, xmlData: xml.NodeSeq) {
     _dirty = true
   }
 
+  def toggleGuideline() {
+    _guideline = !_guideline
+  }
+
   def save() {
     if (!dirty) return
     XML.save(filePath, toXML, ProjectConstants.XML_ENC_UTF_8, xmlDecl = true)
@@ -48,44 +52,41 @@ class Project private(private val _filePath: String, xmlData: xml.NodeSeq) {
     _layers.last
   }
 
+  def selectedLayers = _layers count { _.selected }
+
   def deleteSelectedLayers() {
+    // Nothing to do
+    if (selectedLayers == 0) {
+      return
+    }
+
     _layers = _layers filter {
       !_.selected
     }
     markDirty()
   }
 
-  def selectedLayers = _layers count { _.selected }
+  def moveLayer(newIdx: Int => Int) {
+    val idx = _layers indexWhere { _.selected }
+    _layers.insert(newIdx(idx), _layers.remove(idx))
+    markDirty()
+  }
 
   def moveLayerUp(): Boolean = {
-    // Move only if one layer is selected
-    if (!(selectedLayers == 1)) {
-      return false
+    // Move only if one layer is selected, and not the first one
+    if ((!(selectedLayers == 1)) || _layers.head.selected) {
+      return selectedLayers == 1
     }
-
-    // Nothing to do
-    if (_layers.head.selected) {
-      return true
-    }
-
-    val idx = _layers indexWhere { _.selected }
-    _layers.insert(idx - 1, _layers.remove(idx))
+    moveLayer(idx => idx - 1)
     true
   }
 
   def moveLayerDown(): Boolean = {
-    // Move only if one layer is selected
-    if (!(selectedLayers == 1)) {
-      return false
+    // Move only if one layer is selected, and not the last one
+    if ((!(selectedLayers == 1)) || _layers.last.selected) {
+      return selectedLayers == 1
     }
-
-    // Nothing to do
-    if (_layers.last.selected) {
-      return true
-    }
-
-    val idx = _layers indexWhere { _.selected }
-    _layers.insert(idx + 1, _layers.remove(idx))
+    moveLayer(idx => idx + 1)
     true
   }
 }
@@ -111,7 +112,7 @@ object Project {
   }
 
   def saveNew(params: ProjectParams, file: File) =
-    Try(XML.save(file.getPath, template(params), ProjectConstants.XML_ENC_UTF_8, xmlDecl = true))
+    XML.save(file.getPath, template(params), ProjectConstants.XML_ENC_UTF_8, xmlDecl = true)
 
   def close() {
     _instance = None
