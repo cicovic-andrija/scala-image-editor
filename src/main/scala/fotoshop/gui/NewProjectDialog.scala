@@ -8,6 +8,7 @@ import scala.swing._
 import scala.swing.FileChooser.SelectionMode
 
 class NewProjectDialog (owner: Window) extends Dialog(owner) {
+
   title = GuiConstants.NEW_PROJ_TITLE
   visible = false
   modal = true
@@ -104,4 +105,5 @@ class NewProjectDialog (owner: Window) extends Dialog(owner) {
       publish(ProjectParams(e.name, e.loc, e.w, e.h))
   }
   listenTo(inputGrid)
+  owner.listenTo(this)
 }

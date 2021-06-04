@@ -6,6 +6,7 @@ import javax.swing.border.LineBorder
 object ShortcutsTable {
   private val shortcutsTableHeader: Seq[String] = Seq("Shortcut", "Description")
   private val shortcutsTableData: Array[Array[Any]] = Array(
+    Array("Ctrl+Click", "Show/hide layer"),
     Array("Alt+P", "Open Project menu"),
     Array("Alt+P+N", "Create new project"),
     Array("Alt+P+O", "Open a project"),

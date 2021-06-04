@@ -39,8 +39,11 @@ object GuiConstants {
   val NEW_PROJ_CREATE_BTN   : String    = "Create"
   val NEW_PROJ_SIZE_FORMAT  : String    = "from %d to %d".format(OUTPUT_MIN_W_H, OUTPUT_MAX_W_H)
   val NEW_PROJ_NAME_FORMAT  : String    = "a-z A-Z _ 0-9"
-  val DEST_DIR_DIALOG_TITLE : String     = "Select project location"
+  val DEST_DIR_DIALOG_TITLE : String    = "Select project location"
   val EXT_XML               : String    = "xml"
+  val EXT_JPG               : String    = "jpg"
+  val EXT_JPEG              : String    = "jpeg"
+  val EXT_PNG               : String    = "png"
   val XML_ENC_UTF_8         : String    = "UTF-8"
   val SB_ERROR_PREFIX       : String    = "ERROR: "
   val SB_INIT_TEXT          : String    = "Initializing...Done."
@@ -49,9 +52,13 @@ object GuiConstants {
   val SB_FMT_NEW_PROJ_FAIL  : String    = "Failed to create project %s. Please try again."
   val SB_FMT_CORRUPTED_PROJ : String    = "Failed to open project from file %s. The file is possibly corrupted."
   val SB_FMT_SAVE_FAILED    : String    = "Failed to save the project to file %s."
+  val SB_LOAD_IMG_FAILED    : String    = "Failed to load image."
+  val SB_OP_NOT_SUPPORTED   : String    = "Attempted operation is not supported."
   val SB_FMT_SAVE_SUCCEEDED : String    = "Project saved to file %s."
   val OPEN_DIALOG_FILE_DESC : String    = "XML Files"
   val OPEN_DIALOG_TITLE     : String    = "Select project file"
+  val LOAD_IMG_DIALOG_TITLE : String    = "Select image file"
+  val LOAD_IMG_FILE_DESC    : String    = "JPG/PNG Files"
   val VER_DIALOG_TITLE      : String    = FRAME_TITLE + " " + MI_VERSION + " Information"
   val VER_MESSAGE           : String    = FRAME_TITLE + " " + APP_VERSION
   val FRAME_MIN_SIZE        : Dimension = new Dimension(768, 432)
@@ -61,4 +68,5 @@ object GuiConstants {
   val COLOR_BLACK           : Color     = new Color(0, 0, 0)
   val COLOR_WHITE           : Color     = new Color(255, 255, 255)
   val COLOR_RED             : Color     = new Color(255, 0, 0)
+  val COLOR_GREEN           : Color     = new Color(0, 255, 0)
 }

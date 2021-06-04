@@ -5,8 +5,7 @@ import fotoshop.util.Extensions.IntExtensions
 
 import scala.swing._
 import java.awt.Image
-import scala.swing.event.{Event, Key, MouseClicked}
-import scala.swing.event.Key.Modifier
+import scala.swing.event._
 
 class LayerPanel(private val layer: Layer) extends BorderPanel {
   require(layer != null)
@@ -16,14 +15,10 @@ class LayerPanel(private val layer: Layer) extends BorderPanel {
   maximumSize = GuiConstants.LAYER_PANEL_SIZE
 
   def refreshBorder() {
-    border = if (layer.visible) GuiComponents.thickBlackBorder else GuiComponents.thickRedBorder
+    border = if (layer.selected) GuiComponents.thickGreenBorder else
+               if (layer.visible) GuiComponents.thickBlackBorder else GuiComponents.thickRedBorder
   }
   refreshBorder()
-
-  def toggleVisible() {
-    layer.toggleVisible()
-    refreshBorder()
-  }
 
   override def paintComponent(g: Graphics2D) {
     super.paintComponent(g)
@@ -31,9 +26,13 @@ class LayerPanel(private val layer: Layer) extends BorderPanel {
   }
 
   reactions += {
-    case MouseClicked(_, _, mod, _, _) if mod mask Modifier.Control =>
-      toggleVisible()
+    case MouseClicked(_, _, mod, _, _) if mod mask Key.Modifier.Control =>
+      layer.toggleVisible()
+      refreshBorder()
       publish(LayerToggled())
+    case MouseClicked(_, _, mod, _, _) if mod == 0 =>
+      layer.toggleSelected()
+      refreshBorder()
   }
   listenTo(mouse.clicks)
 }

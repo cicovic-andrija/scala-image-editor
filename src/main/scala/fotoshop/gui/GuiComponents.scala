@@ -15,6 +15,7 @@ object GuiComponents {
   val redBorder: LineBorder = new LineBorder(GuiConstants.COLOR_RED)
   val thickBlackBorder: LineBorder = new LineBorder(GuiConstants.COLOR_BLACK, GuiConstants.LINE_THICKNESS)
   val thickRedBorder: LineBorder = new LineBorder(GuiConstants.COLOR_RED, GuiConstants.LINE_THICKNESS)
+  val thickGreenBorder: LineBorder = new LineBorder(GuiConstants.COLOR_GREEN, GuiConstants.LINE_THICKNESS)
 
   val workspacePanel = new BorderPanel() with Refreshable {
     // no border
@@ -35,32 +36,25 @@ object GuiComponents {
     }
   }
 
-  val layersPanel = new BorderPanel with Refreshable with DeafToSelf {
+  val layersPanel = new BorderPanel with Refreshable {
     border = new TitledBorder(GuiConstants.TB_LAYERS)
-    val scrollPane = new ScrollPane() with DeafToSelf {
+    val scrollPane = new ScrollPane() {
       border = null // no border
       verticalScrollBarPolicy = BarPolicy.AsNeeded
       horizontalScrollBarPolicy = BarPolicy.AsNeeded
       contents = LayerList.instance
       listenTo(LayerList.instance)
-      reactions += {
-        case e: LayerToggled => publish(e)
-      }
     }
     layout(scrollPane) = Center
-    listenTo(scrollPane)
-    reactions += {
-      case e: LayerToggled => publish(e)
-    }
 
     def preRefresh() {
-      LayerList.instance.refreshLayers()
+      LayerList.instance.reloadLayers()
     }
   }
 
   val toolsPanel = new BorderPanel with Toggleable {
     border = new TitledBorder(GuiConstants.TB_TOOLS)
-    visible = true
+    visible = false
   }
 
   val shortcutsPanel = new BorderPanel with Toggleable {
@@ -77,18 +71,13 @@ object GuiComponents {
     layout(scrollPane) = Center
   }
 
-  val sidebarPanel = new BorderPanel with DeafToSelf {
+  val sidebarPanel = new BorderPanel {
     border = GuiComponents.defaultBorder
     preferredSize = new Dimension(GuiConstants.SIDEBAR_WIDTH, peer.getPreferredSize.height)
     minimumSize = new Dimension(GuiConstants.SIDEBAR_WIDTH, peer.getPreferredSize.height)
     layout(GuiComponents.layersPanel) = Center
     layout(GuiComponents.toolsPanel) = North
     layout(GuiComponents.shortcutsPanel) = South
-
-    listenTo(layersPanel)
-    reactions += {
-      case e: LayerToggled => publish(e)
-    }
   }
 
   val statusBar = new BorderPanel {
@@ -109,5 +98,13 @@ object GuiComponents {
       setText(GuiConstants.SB_ERROR_PREFIX + text)
     }
     setText(GuiConstants.SB_INIT_TEXT)
+  }
+
+  val mainPanel = new BorderPanel() {
+    // no border
+    layout(workspacePanel) = Center
+    layout(sidebarPanel) = East
+    layout(statusBar) = South
+    focusable = true
   }
 }

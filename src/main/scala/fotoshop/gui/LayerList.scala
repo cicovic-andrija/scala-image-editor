@@ -12,16 +12,17 @@ class LayerList private extends BoxPanel(Orientation.Vertical) with DeafToSelf {
 
   def addLayerPanel(layer: Layer) {
     layers += new LayerPanel(layer)
-
     contents += Swing.VStrut(10)
     contents += layers.last
     listenTo(layers.last)
   }
 
-  def refreshLayers() {
+  def reloadLayers() {
+    contents foreach { deafTo(_) }
+    contents.clear()
     Project.instance match {
-      case Some(p) => p.layers foreach { l => addLayerPanel(l) }
-      case None => contents.clear()
+      case Some(project) => project.layers foreach { layer => addLayerPanel(layer) }
+      case None => // do nothing
     }
   }
 
