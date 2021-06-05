@@ -65,11 +65,10 @@ class NewProjectDialog(owner: Window) extends Dialog(owner) {
     }
   }
 
-  def placeholder = new Label()
-
   val inputGrid = new GridPanel(5, 3) with DeafToSelf {
     hGap = GuiConstants.H_GAP_SIZE
     vGap = GuiConstants.V_GAP_SIZE
+    def placeholder = new Label()
 
     // add inputs and hints
     inputs map { i =>

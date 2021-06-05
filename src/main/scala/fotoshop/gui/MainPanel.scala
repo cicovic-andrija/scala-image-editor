@@ -36,7 +36,7 @@ class ImagePanel extends Panel {
     for (i <- 0 until h; j <- 0 until w) {
       val img = buffImg2.asInstanceOf[BufferedImage]
       try {
-        img.setRGB(j, i, img.getRGB(j, i) & mask)
+        img.setRGB(j, i, img.getRGB(j, i) & (mask | (transp << ashift)))
       } catch {
         case _: Throwable => println(i)
       }

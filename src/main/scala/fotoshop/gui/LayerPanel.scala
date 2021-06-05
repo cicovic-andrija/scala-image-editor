@@ -30,7 +30,7 @@ class LayerPanel(private val layer: Layer) extends BorderPanel {
       refreshBorder()
       publish(LayerToggled())
     case MouseClicked(_, _, mod, _, _) if mod == 0 =>
-      layer.toggleSelected()
+      layer.selected = !layer.selected
       refreshBorder()
   }
   listenTo(mouse.clicks)

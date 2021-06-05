@@ -32,13 +32,12 @@ object GuiComponents {
     def reset() {
       Project.instance match {
         case Some(project) =>
-          workspace = new Workspace(project)
+          workspace = new Workspace(project.output.width, project.output.height)
           scrollPane.contents = workspace
         case None =>
           workspace = null
           scrollPane.contents = Workspace.Empty
       }
-      revalidate()
       repaint()
     }
   }

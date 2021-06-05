@@ -1,32 +1,45 @@
 package fotoshop.gui
 
-import fotoshop.proj.Project
+import fotoshop.proj._
 
 import scala.swing._
+import java.awt.AlphaComposite
+import java.awt.image.BufferedImage
 
-class Workspace(private val project: Project) extends Panel {
+class Workspace(width: Int, height: Int) extends Panel {
 
-  preferredSize = new Dimension(project.output.width, project.output.height)
-  minimumSize = new Dimension(project.output.width, project.output.height)
-  maximumSize = new Dimension(project.output.width, project.output.height)
+  preferredSize = new Dimension(width, height)
+  minimumSize = new Dimension(width, height)
+  maximumSize = new Dimension(width, height)
   background = GuiConstants.COLOR_WHITE
+
+  def drawLayers(project: Project, g: Graphics2D) {
+    val solidComposite = g.getComposite
+
+    def drawOneLayer = (layer: Layer) => {
+      if (layer.visible) {
+        g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, layer.transparency))
+        g.drawImage(layer.image, layer.x, layer.y, null)
+      }
+    }
+
+    project.layers foreach { drawOneLayer(_) }
+
+    g.setComposite(solidComposite)
+    if (project.guideline) {
+      g.drawRect(0, 0, project.output.width, project.output.height)
+    }
+  }
 
   override def paintComponent(g: Graphics2D) {
     super.paintComponent(g)
     Project.instance match {
-      case Some(p) =>
-        p.layers foreach { l => if (l.visible) g.drawImage(l.image, 0, 0, null) }
-        if (project.guideline) {
-          g.drawRect(0, 0, project.output.width, project.output.height)
-        }
+      case Some(project) => drawLayers(project, g)
       case None =>
     }
   }
 }
 
 object Workspace {
-  val Empty = new Panel() {
-    preferredSize = new Dimension(0, 0)
-    background = GuiConstants.COLOR_WHITE
-  }
+  val Empty = new Workspace(0, 0)
 }

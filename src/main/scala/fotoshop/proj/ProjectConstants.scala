@@ -7,4 +7,5 @@ object ProjectConstants {
   val XML_ENC_UTF_8         : String = "UTF-8"
   val OUTPUT_MIN_W_H        : Int    = 32
   val OUTPUT_MAX_W_H        : Int    = 4096
+  val TRANSPARENCY_INCR     : Float  = 0.05f
 }

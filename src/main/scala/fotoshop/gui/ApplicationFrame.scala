@@ -48,10 +48,16 @@ class ApplicationFrame private extends MainFrame {
   def keyHandler(key: Key.Value, mod: Key.Modifiers) {
     Project.instance match {
       case Some(project) => key match {
-        case Key.O => loadImage(project)
-        case Key.S => saveOutput(project)
-        case Key.D => deleteLayers(project)
-        case Key.G => project.toggleGuideline(); workspacePanel.repaint()
+        case Key.O if mod mask Key.Modifier.Control => loadImage(project)
+        case Key.S if mod mask Key.Modifier.Control => saveOutput(project)
+        case Key.D if mod mask Key.Modifier.Control => deleteLayers(project)
+        case Key.G if mod mask Key.Modifier.Control => project.toggleGuideline(); workspacePanel.repaint()
+        case Key.Left if mod == 0 => moveOnX(project, -5)
+        case Key.Right if mod == 0 => moveOnX(project, 5)
+        case Key.Up if mod == 0 => moveOnY(project, -5)
+        case Key.Down if mod == 0 => moveOnY(project, 5)
+        case Key.Left if mod mask Key.Modifier.Control => decrTransp(project)
+        case Key.Right if mod mask Key.Modifier.Control => incrTransp(project)
         case Key.Up if mod mask Key.Modifier.Control => moveUp(project)
         case Key.Down if mod mask Key.Modifier.Control => moveDown(project)
         case _ =>
@@ -180,11 +186,33 @@ class ApplicationFrame private extends MainFrame {
     )
     val g2d: Graphics2D = image.createGraphics()
     workspacePanel.workspace.peer.print(g2d)
-    Try { ImageIO.write(image, ProjectConstants.JPG_FORMAT_NAME, new File("test.jpg")) } match {
-      case Success(_) => statusBar.setText(GuiConstants.SB_FMT_IMG_SAVE_SUCC.format("test.jpg"))
+    Try { ImageIO.write(image, ProjectConstants.JPG_FORMAT_NAME, new File(project.output.imagePath)) } match {
+      case Success(_) => statusBar.setText(GuiConstants.SB_FMT_IMG_SAVE_SUCC.format(project.output.imagePath))
       case Failure(_) => statusBar.setErrorText(GuiConstants.SB_TEXT_IMG_SAVE_FAIL)
     }
     g2d.dispose()
+  }
+
+  def decrTransp(project: Project) {
+    project.updateTransparency(-TRANSPARENCY_INCR)
+    workspacePanel.workspace.repaint()
+    statusBar.clear()
+  }
+
+  def incrTransp(project: Project) {
+    project.updateTransparency(TRANSPARENCY_INCR)
+    workspacePanel.workspace.repaint()
+    statusBar.clear()
+  }
+
+  def moveOnX(project: Project, step: Int) {
+    project.moveImagesOnX(step)
+    workspacePanel.workspace.repaint()
+  }
+
+  def moveOnY(project: Project, step: Int) {
+    project.moveImagesOnY(step)
+    workspacePanel.workspace.repaint()
   }
 
   def updateApplicationTitle() {

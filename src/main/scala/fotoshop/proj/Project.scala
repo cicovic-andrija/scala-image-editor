@@ -2,6 +2,7 @@ package fotoshop.proj
 
 import fotoshop.util.Extensions._
 
+import java.awt.{AlphaComposite, Color}
 import scala.xml._
 import scala.util._
 import scala.collection.mutable._
@@ -9,9 +10,7 @@ import scala.language.postfixOps
 import java.io.File
 
 class Project private(private val _filePath: String, xmlData: xml.NodeSeq) {
-  private val _name: String = xmlData \@ "Name" ifEmpty {
-    throw new Exception()
-  } trim
+  private val _name: String = xmlData \@ "Name" ifEmpty { throw new Exception() } trim
   private val _output = new Output(owner = this, xmlData \ "Output")
   private var _layers = ListBuffer(xmlData \ "Layers" \ "Layer" map { new Layer(owner = this, _) }: _*)
   private var _dirty = false
@@ -47,7 +46,7 @@ class Project private(private val _filePath: String, xmlData: xml.NodeSeq) {
   }
 
   def loadImage(imgPath: String): Layer = {
-    _layers += new Layer(owner = this, <Layer ImagePath={imgPath} Visible="true"/>)
+    _layers += new Layer(owner = this, <Layer ImagePath={imgPath} Visible="true" Transparency="1.0" X="0" Y="0"/>)
     markDirty()
     _layers.last
   }
@@ -89,14 +88,28 @@ class Project private(private val _filePath: String, xmlData: xml.NodeSeq) {
     moveLayer(idx => idx + 1)
     true
   }
+
+  def moveImagesOnX(step: Int) {
+    _layers foreach { layer => if (layer.selected) layer.moveOnX(step) }
+  }
+
+  def moveImagesOnY(step: Int) {
+    _layers foreach { layer => if (layer.selected) layer.moveOnY(step) }
+  }
+
+  def updateTransparency(delta: Float) {
+    _layers foreach { layer => if (layer.selected) layer.updateTransparency(delta) }
+  }
 }
 
 object Project {
   private var _instance: Option[Project] = None
   def instance = _instance
 
+  def outputImageFile(params: ProjectParams) = new File(params.location, params.name + ProjectConstants.EXT_JPG)
+
   def template(params: ProjectParams): xml.Elem = <Project Name={ params.name }>
-  <Output Width={ params.outputWidth } Height={ params.outputHeight }/>
+  <Output Width={ params.outputWidth } Height={ params.outputHeight } ImagePath={ outputImageFile(params).getPath }/>
   <Layers>
   </Layers>
 </Project>
