@@ -1,6 +1,7 @@
 package fotoshop.proj
 
 import fotoshop.util.Extensions.StringExtensions
+import fotoshop.proj.ProjectConstants._
 
 import java.awt.image.BufferedImage
 import java.io.File
@@ -38,6 +39,25 @@ class Layer private[proj](private val owner: Project, xmlData: xml.NodeSeq) {
   def toggleVisible() {
     _visible = !_visible
     owner.markDirty()
+  }
+
+  def forEachPixelOfColor(color: String)(op: Int => Int) {
+    val mask = color match {
+      case RGB_R => 0xff00ffff
+      case RGB_G => 0xffff00ff
+      case RGB_B => 0xffffff00
+    }
+    val shift = color match {
+      case RGB_R => 16
+      case RGB_G => 8
+      case RGB_B => 0
+    }
+    def ensureLimits(value: Int) = if (value > 0xff) 0xff else if (value < 0) 0 else value
+
+    for {i <- 0 until image.getWidth; j <- 0 until image.getHeight } {
+      val pixel = image.getRGB(i, j)
+      image.setRGB(i, j, (pixel & mask) | ensureLimits(op((pixel >> shift) & 0xff)) << shift)
+    }
   }
 
   // FIXME: Below needs refactoring

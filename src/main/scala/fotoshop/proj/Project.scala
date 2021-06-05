@@ -1,11 +1,13 @@
 package fotoshop.proj
 
 import fotoshop.util.Extensions._
+import fotoshop.proj.ProjectConstants._
 
 import scala.xml._
 import scala.collection.mutable._
 import scala.language.postfixOps
 import java.io.File
+import scala.collection.immutable
 
 class Project private(private val _filePath: String, xmlData: xml.NodeSeq) {
   private val _name: String = xmlData \@ "Name" ifEmpty { throw new Exception() } trim
@@ -60,8 +62,35 @@ class Project private(private val _filePath: String, xmlData: xml.NodeSeq) {
     }
   }
 
-  def unselectAll() {
-    _layers foreach { _.selected = false }
+  def forSelectedLayers(f: Layer => Unit) {
+    _layers foreach { l => if (l.selected) f(l) }
+  }
+
+  def operationHandler(op: String, C: Int, rgbFlags: immutable.Set[String]) {
+    // general handler
+    def executeOperation = (operation: Int => Int) => forSelectedLayers {
+      layer => rgbFlags foreach { color => layer.forEachPixelOfColor(color)(operation) }
+    }
+
+    def executeOperationForAllColors = (operation: Int => Int) => forSelectedLayers {
+      layer => List(RGB_R, RGB_G, RGB_B) foreach { color => layer.forEachPixelOfColor(color)(operation) }
+    }
+
+    // specific handlers
+    op match {
+      case OP_SET => executeOperation(_ => C)
+      case OP_ADD => executeOperation(value => value + C)
+      case OP_SUB => executeOperation(value => value - C)
+      case OP_REV_SUB => executeOperation(value => C - value)
+      case OP_MUL => executeOperation(value => value * C)
+      case OP_DIV => executeOperation(value => if (C == 0) 0 else value / C)
+      case OP_REV_DIV => executeOperation(value => if (value == 0) 0 else C / value)
+      case OP_POW => executeOperation(value => math.pow(value, C).intValue)
+      case OP_MIN => executeOperation(value => value.min(C))
+      case OP_MAX => executeOperation(value => value.max(C))
+      case OP_INV => executeOperationForAllColors(value => PIXEL_COLOR_MAX_VAL - value)
+      case _ => println("NYI")
+    }
   }
 
   def moveLayer(newIdx: Int => Int) {

@@ -14,7 +14,7 @@ class LayerPanel(private val layer: Layer) extends BorderPanel {
   maximumSize = GuiConstants.LAYER_PANEL_SIZE
 
   def refreshBorder() {
-    border = if (layer.selected) GuiComponents.thickGreenBorder else
+    border = if (layer.selected) GuiComponents.thickBlueBorder else
                if (layer.visible) GuiComponents.thickBlackBorder else GuiComponents.thickRedBorder
   }
   refreshBorder()

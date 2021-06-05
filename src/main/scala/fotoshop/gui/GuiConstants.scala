@@ -21,8 +21,9 @@ object GuiConstants {
   val APP_VERSION           : String    = "0.1 (c) Andrija Cicovic, 2021."
   val FRAME_TITLE           : String    = "FotoShop"
   val MENU_PROJECT          : String    = "Project"
-  val MENU_HELP             : String    = "Help"
   val MENU_LAYER            : String    = "Layer"
+  val MENU_TRANSFORM        : String    = "Transform"
+  val MENU_HELP             : String    = "Help"
   val MI_NEW_PROJECT        : String    = "New Project..."
   val MI_OPEN_PROJECT       : String    = "Open Project..."
   val MI_SAVE_PROJECT       : String    = "Save Project"
@@ -32,10 +33,22 @@ object GuiConstants {
   val MI_LOAD_IMAGE         : String    = "Load Image..."
   val MI_DELETE_LAYERS      : String    = "Delete Selected"
   val MI_TOGGLE_GUIDELINE   : String    = "Toggle Guideline"
-  val MI_TOOLS              : String    = "Toggle Tools"
+  val MI_TOGGLE_INPUTS      : String    = "Toggle Inputs"
+  val MI_SET_C              : String    = "Set C"
+  val MI_ADD_C              : String    = "Add C"
+  val MI_SUB_C              : String    = "Subtract C"
+  val MI_REV_SUB_C          : String    = "Subtract from C"
+  val MI_MUL_C              : String    = "Multiply C"
+  val MI_DIV_C              : String    = "Divide by C"
+  val MI_REV_DIV_C          : String    = "Divide C"
+  val MI_POW_C              : String    = "Power of C"
+  val MI_MIN_C              : String    = "Minimum with C"
+  val MI_MAX_C              : String    = "Maximum with C"
+  val MI_INVERSE            : String    = "Inverse"
+  val MI_GRAYSCALE          : String    = "Grayscale"
   val MI_SHORTCUTS          : String    = "Toggle Shortcuts"
   val MI_VERSION            : String    = "Version"
-  val TB_TOOLS              : String    = "Tools"
+  val TB_INPUTS             : String    = "Inputs [ C ]"
   val TB_LAYERS             : String    = "Layers"
   val TB_SHORTCUTS          : String    = "Shortcuts"
   val NEW_PROJ_TITLE        : String    = "New Project"
@@ -48,6 +61,7 @@ object GuiConstants {
   val NEW_PROJ_SIZE_FORMAT  : String    = "from %d to %d".format(OUTPUT_MIN_W_H, OUTPUT_MAX_W_H)
   val NEW_PROJ_NAME_FORMAT  : String    = "a-z A-Z _ 0-9"
   val DEST_DIR_DIALOG_TITLE : String    = "Select project location"
+  val INPUT_PARAM_LABEL     : String    = " C "
   val EXT_XML               : String    = "xml"
   val EXT_JPG               : String    = "jpg"
   val EXT_JPEG              : String    = "jpeg"
@@ -65,6 +79,7 @@ object GuiConstants {
   val SB_FMT_SAVE_SUCCEEDED : String    = "Project saved to file %s."
   val SB_FMT_IMG_SAVE_SUCC  : String    = "Image saved to file %s."
   val SB_TEXT_IMG_SAVE_FAIL : String    = "Failed to generate an image."
+  val SB_TEXT_INVALID_INPUT : String    = "Invalid input provided."
   val OPEN_DIALOG_FILE_DESC : String    = "XML Files"
   val OPEN_DIALOG_TITLE     : String    = "Select project file"
   val LOAD_IMG_DIALOG_TITLE : String    = "Select image file"
@@ -77,6 +92,6 @@ object GuiConstants {
   val COLOR_LIGHT_GRAY      : Color     = Color.LIGHT_GRAY
   val COLOR_BLACK           : Color     = new Color(0, 0, 0)
   val COLOR_WHITE           : Color     = new Color(255, 255, 255)
-  val COLOR_RED             : Color     = new Color(255, 0, 0)
-  val COLOR_GREEN           : Color     = new Color(0, 255, 0)
+  val COLOR_RED             : Color     = new Color(255, 40, 0)
+  val COLOR_BLUE            : Color     = new Color(32, 232, 255)
 }

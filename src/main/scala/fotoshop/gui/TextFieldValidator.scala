@@ -23,6 +23,9 @@ class TextFieldValidator(labelText: String,
   def this(labelText: String, validator: String => Boolean, hintText: String) =
     this(labelText, validator, new Label(hintText) { horizontalAlignment = Alignment.Right }, true)
 
+  def this(labelText: String, validator: String => Boolean) =
+    this(labelText, validator, new Label("") { horizontalAlignment = Alignment.Right }, true)
+
   def setText(t: String) {
     text = t
     publish(EditDone(this))

@@ -15,7 +15,7 @@ import javax.swing.filechooser.FileNameExtensionFilter
 
 class ApplicationFrame private extends MainFrame {
 
-  // IDEAS: Clone layer, scale layer, confirm on exit, deselect all
+  // IDEAS: Clone layer, scale layer, confirm on exit
 
   title = GuiConstants.FRAME_TITLE
   resizable = true
@@ -43,10 +43,12 @@ class ApplicationFrame private extends MainFrame {
     case _: LoadImageRequested => withOpenProject { loadImage }
     case _: DeleteLayersRequested => withOpenProject { deleteLayers }
     case _: ToggleGuidelineRequested => withOpenProject { toggleGuideline }
-    case _: ToggleToolsRequested => toolsPanel.toggle()
+    case _: ToggleToolsRequested => { inputsPanel.toggle(); mainPanel.requestFocus() }
     case _: ToggleShortcutsRequested => shortcutsPanel.toggle()
     case _: LayerToggled => workspacePanel.update()
     case _: VersionRequested => Dialog.showMessage(this, GuiConstants.VER_MESSAGE, GuiConstants.VER_DIALOG_TITLE)
+    case OperationRequested(_, InputProvided(false)) => GuiComponents.statusBar.setErrorText(GuiConstants.SB_TEXT_INVALID_INPUT)
+    case OperationRequested(op, MultiInputProvided(input @ _)) => operationHandler(op, input)
     case ProjectParamsProvided(params) => openNewProject(params)
     case KeyPressed(_, key, mod, _) => keyHandler(key, mod)
     case e: ExitRequested => publish(e)
@@ -61,9 +63,6 @@ class ApplicationFrame private extends MainFrame {
   def keyHandler(key: Key.Value, mod: Key.Modifiers) {
     Project.instance match {
       case Some(project) => key match {
-        case Key.Escape =>
-          project.unselectAll()
-          LayerList.instance.refreshBorders()
         case Key.Left if mod == GuiConstants.NO_KEY_MODIFIER => project.moveImagesOnX(-GuiConstants.MOVE_INCR)
         case Key.Right if mod == GuiConstants.NO_KEY_MODIFIER => project.moveImagesOnX(GuiConstants.MOVE_INCR)
         case Key.Up if mod == GuiConstants.NO_KEY_MODIFIER => project.moveImagesOnY(-GuiConstants.MOVE_INCR)
@@ -72,12 +71,25 @@ class ApplicationFrame private extends MainFrame {
         case Key.Right if mod mask Key.Modifier.Control => project.updateTransparency(GuiConstants.TRANSPARENCY_INCR)
         case Key.Up if mod mask Key.Modifier.Control => moveLayerUp(project)
         case Key.Down if mod mask Key.Modifier.Control => moveLayerDown(project)
+        case Key.Escape =>
+          project forSelectedLayers { _.selected = false }
+          LayerList.instance.refreshBorders()
         case _ =>
       }
       case None => return
     }
     LayerList.instance.repaint()
     workspacePanel.update()
+  }
+
+  def operationHandler(op: String, input: Input) {
+    Project.instance match {
+      case Some(project) =>
+        project.operationHandler(op, input.C, input.rgbFlags)
+        LayerList.instance.repaint()
+        workspacePanel.update()
+      case None =>
+    }
   }
 
   def openNewProject(params: ProjectParams) {
@@ -96,7 +108,8 @@ class ApplicationFrame private extends MainFrame {
             LayerList.instance.reload()
             LayerList.instance.repaint()
             workspacePanel.reset()
-            MyMenuBar.instance.updateAvailableMenus()
+            inputsPanel.reset()
+            MyMenuBar.instance.reset()
             updateApplicationTitle()
             statusBar.clear()
           case None =>
@@ -134,7 +147,8 @@ class ApplicationFrame private extends MainFrame {
     LayerList.instance.reload()
     LayerList.instance.repaint()
     workspacePanel.reset()
-    MyMenuBar.instance.updateAvailableMenus()
+    inputsPanel.reset()
+    MyMenuBar.instance.reset()
     updateApplicationTitle()
     statusBar.setText(GuiConstants.SB_TEXT_PROJ_CLOSED)
   }
@@ -193,6 +207,7 @@ class ApplicationFrame private extends MainFrame {
   }
 
   def saveImage(project: Project) {
+    if (project.guideline) project.toggleGuideline()
     val image = new BufferedImage(
       project.output.width,
       project.output.height,
