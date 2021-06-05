@@ -18,6 +18,7 @@ class MyMenuBar private extends MenuBar with DeafToSelf {
   private val _newMenuItem = newMenuItem(GuiConstants.MI_NEW_PROJECT, Key.N, NewProjectRequested())
   private val _openMenuItem = newMenuItem(GuiConstants.MI_OPEN_PROJECT, Key.O, OpenRequested())
   private val _saveMenuItem = newMenuItem(GuiConstants.MI_SAVE_PROJECT, Key.S, SaveRequested())
+  private val _saveImageMenuItem = newMenuItem(GuiConstants.MI_SAVE_IMAGE, Key.I, SaveImageRequested())
   private val _closeMenuItem = newMenuItem(GuiConstants.MI_CLOSE_PROJECT, Key.C, CloseRequested())
 
   contents += new Menu(GuiConstants.MENU_PROJECT) {
@@ -25,9 +26,18 @@ class MyMenuBar private extends MenuBar with DeafToSelf {
     contents += _newMenuItem
     contents += _openMenuItem
     contents += _saveMenuItem
+    contents += _saveImageMenuItem
     contents += _closeMenuItem
     contents += new Separator()
     contents += newMenuItem(GuiConstants.MI_EXIT, Key.X, ExitRequested())
+    // Note: For whatever reason, contents length here is 0! There is no way to iterate it.
+  }
+
+  contents += new Menu(GuiConstants.MENU_LAYER) {
+    mnemonic = Key.L
+    contents += newMenuItem(GuiConstants.MI_LOAD_IMAGE, Key.I, LoadImageRequested())
+    contents += newMenuItem(GuiConstants.MI_DELETE_LAYERS, Key.D, DeleteLayersRequested())
+    contents += newMenuItem(GuiConstants.MI_TOGGLE_GUIDELINE, Key.G, ToggleGuidelineRequested())
     // Note: For whatever reason, contents length here is 0! There is no way to iterate it.
   }
 
@@ -45,12 +55,16 @@ class MyMenuBar private extends MenuBar with DeafToSelf {
         _newMenuItem.enabled = true
         _openMenuItem.enabled = true
         _saveMenuItem.enabled = false
+        _saveImageMenuItem.enabled = false
         _closeMenuItem.enabled = false
+        contents(1).enabled = false
       case Some(_) =>
         _newMenuItem.enabled = false
         _openMenuItem.enabled = false
         _saveMenuItem.enabled = true
+        _saveImageMenuItem.enabled = true
         _closeMenuItem.enabled = true
+        contents(1).enabled = true
     }
   }
   updateAvailableMenus()

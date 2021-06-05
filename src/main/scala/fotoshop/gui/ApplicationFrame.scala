@@ -15,6 +15,8 @@ import javax.swing.filechooser.FileNameExtensionFilter
 
 class ApplicationFrame private extends MainFrame {
 
+  // IDEAS: Clone layer, scale layer, confirm on exit, deselect all
+
   title = GuiConstants.FRAME_TITLE
   resizable = true
   preferredSize = GuiConstants.FRAME_PREF_SIZE
@@ -25,18 +27,29 @@ class ApplicationFrame private extends MainFrame {
 
   val newProjectDialog = new NewProjectDialog(owner = this)
 
+  def withOpenProject(f: Project => Unit) {
+    Project.instance match {
+      case Some(project) => f(project)
+      case None =>
+    }
+  }
+
   reactions += {
     case _: NewProjectRequested => newProjectDialog.visible = true
     case _: OpenRequested => openProject()
     case _: CloseRequested => closeProject()
-    case _: SaveRequested => saveProject()
+    case _: SaveRequested => withOpenProject { saveProject }
+    case _: SaveImageRequested => withOpenProject { saveImage }
+    case _: LoadImageRequested => withOpenProject { loadImage }
+    case _: DeleteLayersRequested => withOpenProject { deleteLayers }
+    case _: ToggleGuidelineRequested => withOpenProject { toggleGuideline }
     case _: ToggleToolsRequested => toolsPanel.toggle()
     case _: ToggleShortcutsRequested => shortcutsPanel.toggle()
+    case _: LayerToggled => workspacePanel.update()
     case _: VersionRequested => Dialog.showMessage(this, GuiConstants.VER_MESSAGE, GuiConstants.VER_DIALOG_TITLE)
-    case _: LayerToggled => workspacePanel.repaint() // FIXME(?)
-    case ProjectParamsProvided(params) => newProject(params)
-    case e: ExitRequested => publish(e)
+    case ProjectParamsProvided(params) => openNewProject(params)
     case KeyPressed(_, key, mod, _) => keyHandler(key, mod)
+    case e: ExitRequested => publish(e)
   }
 
   deafTo(this)
@@ -48,25 +61,26 @@ class ApplicationFrame private extends MainFrame {
   def keyHandler(key: Key.Value, mod: Key.Modifiers) {
     Project.instance match {
       case Some(project) => key match {
-        case Key.O if mod mask Key.Modifier.Control => loadImage(project)
-        case Key.S if mod mask Key.Modifier.Control => saveOutput(project)
-        case Key.D if mod mask Key.Modifier.Control => deleteLayers(project)
-        case Key.G if mod mask Key.Modifier.Control => project.toggleGuideline(); workspacePanel.repaint()
-        case Key.Left if mod == 0 => moveOnX(project, -5)
-        case Key.Right if mod == 0 => moveOnX(project, 5)
-        case Key.Up if mod == 0 => moveOnY(project, -5)
-        case Key.Down if mod == 0 => moveOnY(project, 5)
-        case Key.Left if mod mask Key.Modifier.Control => decrTransp(project)
-        case Key.Right if mod mask Key.Modifier.Control => incrTransp(project)
-        case Key.Up if mod mask Key.Modifier.Control => moveUp(project)
-        case Key.Down if mod mask Key.Modifier.Control => moveDown(project)
+        case Key.Escape =>
+          project.unselectAll()
+          LayerList.instance.refreshBorders()
+        case Key.Left if mod == GuiConstants.NO_KEY_MODIFIER => project.moveImagesOnX(-GuiConstants.MOVE_INCR)
+        case Key.Right if mod == GuiConstants.NO_KEY_MODIFIER => project.moveImagesOnX(GuiConstants.MOVE_INCR)
+        case Key.Up if mod == GuiConstants.NO_KEY_MODIFIER => project.moveImagesOnY(-GuiConstants.MOVE_INCR)
+        case Key.Down if mod == GuiConstants.NO_KEY_MODIFIER => project.moveImagesOnY(GuiConstants.MOVE_INCR)
+        case Key.Left if mod mask Key.Modifier.Control => project.updateTransparency(-GuiConstants.TRANSPARENCY_INCR)
+        case Key.Right if mod mask Key.Modifier.Control => project.updateTransparency(GuiConstants.TRANSPARENCY_INCR)
+        case Key.Up if mod mask Key.Modifier.Control => moveLayerUp(project)
+        case Key.Down if mod mask Key.Modifier.Control => moveLayerDown(project)
         case _ =>
       }
-      case None =>
+      case None => return
     }
+    LayerList.instance.repaint()
+    workspacePanel.update()
   }
 
-  def newProject(params: ProjectParams) {
+  def openNewProject(params: ProjectParams) {
     val projectFile = new File(params.location, params.name + EXT_XML)
     Try { Project.saveNew(params, projectFile) } match {
       case Success(_) => openProject(projectFile)
@@ -79,8 +93,9 @@ class ApplicationFrame private extends MainFrame {
       case Success(_) =>
         Project.instance match {
           case Some(_) =>
+            LayerList.instance.reload()
+            LayerList.instance.repaint()
             workspacePanel.reset()
-            layersPanel.refresh()
             MyMenuBar.instance.updateAvailableMenus()
             updateApplicationTitle()
             statusBar.clear()
@@ -101,27 +116,24 @@ class ApplicationFrame private extends MainFrame {
         GuiConstants.EXT_XML
       )
     }
-
     fileChooser.showOpenDialog(this)
     if (fileChooser.selectedFile != null) {
       openProject(fileChooser.selectedFile)
     }
   }
 
-  def saveProject() {
-    Project.instance match {
-      case Some(p) => Try { p.save() } match {
-        case Success(_) => statusBar.setText(GuiConstants.SB_FMT_SAVE_SUCCEEDED.format(p.filePath))
-        case Failure(_) => statusBar.setErrorText(GuiConstants.SB_FMT_SAVE_FAILED.format(p.filePath))
-      }
-      case None =>
+  def saveProject(project: Project) {
+    Try { project.save() } match {
+      case Success(_) => statusBar.setText(GuiConstants.SB_FMT_SAVE_SUCCEEDED.format(project.filePath))
+      case Failure(_) => statusBar.setErrorText(GuiConstants.SB_FMT_SAVE_FAILED.format(project.filePath))
     }
   }
 
   def closeProject() {
     Project.close()
+    LayerList.instance.reload()
+    LayerList.instance.repaint()
     workspacePanel.reset()
-    layersPanel.refresh()
     MyMenuBar.instance.updateAvailableMenus()
     updateApplicationTitle()
     statusBar.setText(GuiConstants.SB_TEXT_PROJ_CLOSED)
@@ -143,42 +155,44 @@ class ApplicationFrame private extends MainFrame {
     if (fileChooser.selectedFile != null) {
       Try { project.loadImage(fileChooser.selectedFile.getPath) } match {
         case Success(layer) =>
-          LayerList.instance.addLayerPanel(layer)
+          LayerList.instance.addLayer(layer)
           LayerList.instance.repaint()
-          workspacePanel.repaint()
+          workspacePanel.update()
         case Failure(_) =>
-          statusBar.setErrorText(GuiConstants.SB_LOAD_IMG_FAILED)
+          statusBar.setErrorText(GuiConstants.SB_FMT_LOAD_IMG_FAIL.format(fileChooser.selectedFile.getPath))
       }
     }
   }
 
   def deleteLayers(project: Project) {
     project.deleteSelectedLayers()
-    layersPanel.refresh()
-    workspacePanel.repaint()
+    LayerList.instance.reload()
+    LayerList.instance.repaint()
+    workspacePanel.update()
   }
 
-  def moveUp(project: Project) = {
-    if (!project.moveLayerUp()) {
-      statusBar.setErrorText(GuiConstants.SB_OP_NOT_SUPPORTED)
+  def toggleGuideline(project: Project): Unit = {
+    project.toggleGuideline()
+    workspacePanel.update()
+  }
+
+  def moveLayerUp(project: Project) {
+    if (project.moveLayerUp()) {
+      LayerList.instance.reload()
     } else {
-      layersPanel.refresh()
-      workspacePanel.repaint()
-      statusBar.clear()
+      statusBar.setErrorText(GuiConstants.SB_OP_NOT_SUPPORTED)
     }
   }
 
-  def moveDown(project: Project) = {
-    if (!project.moveLayerDown()) {
-      statusBar.setErrorText(GuiConstants.SB_OP_NOT_SUPPORTED)
+  def moveLayerDown(project: Project) {
+    if (project.moveLayerDown()) {
+      LayerList.instance.reload()
     } else {
-      layersPanel.refresh()
-      workspacePanel.repaint()
-      statusBar.clear()
+      statusBar.setErrorText(GuiConstants.SB_OP_NOT_SUPPORTED)
     }
   }
 
-  def saveOutput(project: Project) {
+  def saveImage(project: Project) {
     val image = new BufferedImage(
       project.output.width,
       project.output.height,
@@ -191,28 +205,6 @@ class ApplicationFrame private extends MainFrame {
       case Failure(_) => statusBar.setErrorText(GuiConstants.SB_TEXT_IMG_SAVE_FAIL)
     }
     g2d.dispose()
-  }
-
-  def decrTransp(project: Project) {
-    project.updateTransparency(-TRANSPARENCY_INCR)
-    workspacePanel.workspace.repaint()
-    statusBar.clear()
-  }
-
-  def incrTransp(project: Project) {
-    project.updateTransparency(TRANSPARENCY_INCR)
-    workspacePanel.workspace.repaint()
-    statusBar.clear()
-  }
-
-  def moveOnX(project: Project, step: Int) {
-    project.moveImagesOnX(step)
-    workspacePanel.workspace.repaint()
-  }
-
-  def moveOnY(project: Project, step: Int) {
-    project.moveImagesOnY(step)
-    workspacePanel.workspace.repaint()
   }
 
   def updateApplicationTitle() {

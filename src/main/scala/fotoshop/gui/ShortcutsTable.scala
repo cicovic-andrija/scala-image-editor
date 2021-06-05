@@ -6,17 +6,25 @@ import javax.swing.border.LineBorder
 object ShortcutsTable {
   private val shortcutsTableHeader: Seq[String] = Seq("Shortcut", "Description")
   private val shortcutsTableData: Array[Array[Any]] = Array(
+    Array("Click", "Select layer"),
+    Array("Esc", "Unselect all layers"),
     Array("Ctrl+Click", "Show/hide layer"),
+    Array("Arrow (selected)", "Move layer"),
+    Array("Ctrl+L/R Arrow (selected)", "Change transparency"),
     Array("Alt+P", "Open Project menu"),
     Array("Alt+P+N", "Create new project"),
     Array("Alt+P+O", "Open a project"),
     Array("Alt+P+S", "Save current project"),
+    Array("Alt+P+I", "Save image to file"),
     Array("Alt+P+C", "Close current project"),
     Array("Alt+P+X", "Exit"),
+    Array("Alt+L+I", "Load image"),
+    Array("Alt+L+D", "Delete layers"),
+    Array("Alt+L+G", "Show/hide guideline"),
     Array("Alt+H", "Open About menu"),
-    Array("Alt+H+T", "Display/hide tools"),
-    Array("Alt+H+S", "Display/hide shortcuts"),
-    Array("Alt+H+V", "Display version info"),
+    Array("Alt+H+T", "Show/hide tools"),
+    Array("Alt+H+S", "Show/hide shortcuts"),
+    Array("Alt+H+V", "Show version info"),
   )
 
   private val _instance = new Table(shortcutsTableData, shortcutsTableHeader) {

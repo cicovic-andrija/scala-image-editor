@@ -4,7 +4,6 @@ import fotoshop.proj._
 
 import scala.swing._
 import java.awt.AlphaComposite
-import java.awt.image.BufferedImage
 
 class Workspace(width: Int, height: Int) extends Panel {
 

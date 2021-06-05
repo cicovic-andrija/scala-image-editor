@@ -40,6 +40,11 @@ object GuiComponents {
       }
       repaint()
     }
+
+    def update() {
+      if (workspace == null) return
+      workspace.repaint()
+    }
   }
 
   val layersPanel = new BorderPanel {
@@ -52,11 +57,6 @@ object GuiComponents {
       listenTo(LayerList.instance)
     }
     layout(scrollPane) = Center
-
-    def refresh() {
-      LayerList.instance.reloadLayers()
-      LayerList.instance.repaint()
-    }
   }
 
   val toolsPanel = new BorderPanel with Toggleable {

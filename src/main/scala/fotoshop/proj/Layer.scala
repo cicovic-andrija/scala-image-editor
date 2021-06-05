@@ -40,6 +40,8 @@ class Layer private[proj](private val owner: Project, xmlData: xml.NodeSeq) {
     owner.markDirty()
   }
 
+  // FIXME: Below needs refactoring
+
   def moveOnX(step: Int) {
     if (x + image.getWidth + step > owner.output.width) {
       _x = owner.output.width - image.getWidth
@@ -63,8 +65,11 @@ class Layer private[proj](private val owner: Project, xmlData: xml.NodeSeq) {
   def transparency = _transparency
   def updateTransparency(delta: Float) {
     _transparency = if (transparency + delta < 0.0f) 0.0f else if (transparency + delta > 1.0f) 1.0f else transparency + delta
-    owner.markDirty()
   }
 
   def toXML: xml.Elem = <Layer ImagePath={path} Visible={visible toString} Transparency={ transparency toString } X={ x toString } Y={ y toString }/>
+}
+
+object Layer {
+  def newXML(imgPath: String): xml.Elem = <Layer ImagePath={ imgPath } Visible="true" Transparency="1.0" X="0" Y="0"/>
 }

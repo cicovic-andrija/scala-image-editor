@@ -2,9 +2,7 @@ package fotoshop.proj
 
 import fotoshop.util.Extensions._
 
-import java.awt.{AlphaComposite, Color}
 import scala.xml._
-import scala.util._
 import scala.collection.mutable._
 import scala.language.postfixOps
 import java.io.File
@@ -46,7 +44,7 @@ class Project private(private val _filePath: String, xmlData: xml.NodeSeq) {
   }
 
   def loadImage(imgPath: String): Layer = {
-    _layers += new Layer(owner = this, <Layer ImagePath={imgPath} Visible="true" Transparency="1.0" X="0" Y="0"/>)
+    _layers += new Layer(owner = this, Layer.newXML(imgPath))
     markDirty()
     _layers.last
   }
@@ -54,15 +52,16 @@ class Project private(private val _filePath: String, xmlData: xml.NodeSeq) {
   def selectedLayers = _layers count { _.selected }
 
   def deleteSelectedLayers() {
-    // Nothing to do
-    if (selectedLayers == 0) {
-      return
+    if (selectedLayers > 0) {
+      _layers = _layers filter {
+        !_.selected
+      }
+      markDirty()
     }
+  }
 
-    _layers = _layers filter {
-      !_.selected
-    }
-    markDirty()
+  def unselectAll() {
+    _layers foreach { _.selected = false }
   }
 
   def moveLayer(newIdx: Int => Int) {
@@ -91,14 +90,17 @@ class Project private(private val _filePath: String, xmlData: xml.NodeSeq) {
 
   def moveImagesOnX(step: Int) {
     _layers foreach { layer => if (layer.selected) layer.moveOnX(step) }
+    markDirty()
   }
 
   def moveImagesOnY(step: Int) {
     _layers foreach { layer => if (layer.selected) layer.moveOnY(step) }
+    markDirty()
   }
 
   def updateTransparency(delta: Float) {
     _layers foreach { layer => if (layer.selected) layer.updateTransparency(delta) }
+    markDirty()
   }
 }
 

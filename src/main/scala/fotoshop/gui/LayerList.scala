@@ -7,19 +7,23 @@ import scala.swing.Swing
 
 class LayerList private extends BoxPanel(Orientation.Vertical) with DeafToSelf {
 
-  def addLayerPanel(layer: Layer) {
+  def addLayer(layer: Layer) {
     contents += Swing.VStrut(10)
     contents += new LayerPanel(layer)
     listenTo(contents.last)
   }
 
-  def reloadLayers() {
+  def refreshBorders() {
+    for { c <- contents if c.isInstanceOf[LayerPanel] } c.asInstanceOf[LayerPanel].refreshBorder()
+  }
+
+  def reload() {
     contents foreach { deafTo(_) }
     contents.clear()
     Project.instance match {
       case Some(project) =>
-        project.layers foreach { layer => addLayerPanel(layer) }
-      case None => // do nothing
+        project.layers foreach { layer => addLayer(layer) }
+      case None =>
     }
   }
 
