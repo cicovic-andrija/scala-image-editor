@@ -24,12 +24,22 @@ class Project private(private val _filePath: String, xmlData: xml.NodeSeq) {
   def filePath = _filePath
 
   def toXML: xml.Elem = <Project Name={name}>
-    {output.toXML}<Layers>
-      {layers map {
-        _.toXML
-      }}
-    </Layers>
-  </Project>
+  {output.toXML}
+  <Layers>
+    { layers map { _.toXML} }
+  </Layers>
+</Project>
+
+  private def playBackOperations() {
+    _layers foreach { layer =>
+      layer.selected = true
+      layer.operations foreach { op =>
+        operationHandler(op.name, op.argument, op.rgbFlags.split(RGB_FLAG_SEPARATOR).toSet, playBackMode = true)
+      }
+      layer.selected = false
+    }
+  }
+  playBackOperations()
 
   def markDirty() {
     _dirty = true
@@ -66,17 +76,21 @@ class Project private(private val _filePath: String, xmlData: xml.NodeSeq) {
     _layers foreach { l => if (l.selected) f(l) }
   }
 
-  def operationHandler(op: String, C: Int, rgbFlags: immutable.Set[String]) {
-    // general handler
-    def executeOperation = (operation: Int => Int) => forSelectedLayers {
-      layer => rgbFlags foreach { color => layer.forEachPixelOfColor(color)(operation) }
+  def operationHandler(op: String, C: Int, rgbFlags: immutable.Set[String], playBackMode: Boolean) {
+
+    def executeOperation = (operation: Int => Int) => forSelectedLayers { layer =>
+      rgbFlags foreach { color => layer.forEachPixelColor(color)(operation) }
+
+      if (!playBackMode) {
+        // record operation
+        layer.operations += Operation(op, C, rgbFlags.mkString(RGB_FLAG_SEPARATOR))
+      }
     }
 
     def executeOperationForAllColors = (operation: Int => Int) => forSelectedLayers {
-      layer => List(RGB_R, RGB_G, RGB_B) foreach { color => layer.forEachPixelOfColor(color)(operation) }
+      layer => List(RGB_R, RGB_G, RGB_B) foreach { color => layer.forEachPixelColor(color)(operation) }
     }
 
-    // specific handlers
     op match {
       case OP_SET => executeOperation(_ => C)
       case OP_ADD => executeOperation(value => value + C)
@@ -89,8 +103,13 @@ class Project private(private val _filePath: String, xmlData: xml.NodeSeq) {
       case OP_MIN => executeOperation(value => value.min(C))
       case OP_MAX => executeOperation(value => value.max(C))
       case OP_INV => executeOperationForAllColors(value => PIXEL_COLOR_MAX_VAL - value)
-      case _ => println("NYI")
+      case _ =>
     }
+    if (!playBackMode) markDirty()
+  }
+
+  def operationHandler(op: String, C: Int, rgbFlags: immutable.Set[String]) {
+    operationHandler(op, C, rgbFlags, playBackMode = false)
   }
 
   def moveLayer(newIdx: Int => Int) {

@@ -6,6 +6,7 @@ import fotoshop.proj.ProjectConstants._
 import java.awt.image.BufferedImage
 import java.io.File
 import javax.imageio.ImageIO
+import scala.collection.mutable.ListBuffer
 import scala.language.postfixOps
 
 class Layer private[proj](private val owner: Project, xmlData: xml.NodeSeq) {
@@ -16,6 +17,7 @@ class Layer private[proj](private val owner: Project, xmlData: xml.NodeSeq) {
   private var _transparency = xmlData \@ "Transparency" toFloat
   private var _x = xmlData \@ "X" toInt
   private var _y = xmlData \@ "Y" toInt
+  private val _operations = ListBuffer(xmlData \ "Operations" \ "Operation" map { Operation.fromXML(_) }: _*)
 
   // non-serializable fields
   private val _image: BufferedImage = ImageIO.read(new File(_path))
@@ -29,6 +31,7 @@ class Layer private[proj](private val owner: Project, xmlData: xml.NodeSeq) {
   def image = _image
   def x = _x
   def y = _y
+  def operations = _operations
 
   def selected = _selected
   def selected_=(selected: Boolean): Unit = {
@@ -41,7 +44,11 @@ class Layer private[proj](private val owner: Project, xmlData: xml.NodeSeq) {
     owner.markDirty()
   }
 
-  def forEachPixelOfColor(color: String)(op: Int => Int) {
+  def recordOperation(operation: Operation) {
+    _operations += operation
+  }
+
+  def forEachPixelColor(color: String)(op: Int => Int) {
     val mask = color match {
       case RGB_R => 0xff00ffff
       case RGB_G => 0xffff00ff
@@ -87,9 +94,18 @@ class Layer private[proj](private val owner: Project, xmlData: xml.NodeSeq) {
     _transparency = if (transparency + delta < 0.0f) 0.0f else if (transparency + delta > 1.0f) 1.0f else transparency + delta
   }
 
-  def toXML: xml.Elem = <Layer ImagePath={path} Visible={visible toString} Transparency={ transparency toString } X={ x toString } Y={ y toString }/>
+  def toXML: xml.Elem =
+  <Layer ImagePath={path} Visible={visible toString} Transparency={ transparency toString } X={ x toString } Y={ y toString }>
+    <Operations>
+      { operations map { _.toXML } }
+    </Operations>
+  </Layer>
 }
 
 object Layer {
-  def newXML(imgPath: String): xml.Elem = <Layer ImagePath={ imgPath } Visible="true" Transparency="1.0" X="0" Y="0"/>
+  def newXML(imgPath: String): xml.Elem =
+  <Layer ImagePath={ imgPath } Visible="true" Transparency="1.0" X="0" Y="0">
+    <Operations>
+    </Operations>
+  </Layer>
 }
