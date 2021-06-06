@@ -21,16 +21,13 @@ class Layer private[proj](private val owner: Project, xmlData: xml.NodeSeq) {
 
   // non-serializable fields
   private val _image: BufferedImage = ImageIO.read(new File(_path))
-  private var _selected = false
-
   if (_image == null) {
     throw new Exception()
   }
+  private var _selected = false
 
   def path = _path
   def image = _image
-  def x = _x
-  def y = _y
   def operations = _operations
 
   def selected = _selected
@@ -44,11 +41,9 @@ class Layer private[proj](private val owner: Project, xmlData: xml.NodeSeq) {
     owner.markDirty()
   }
 
-  def recordOperation(operation: Operation) {
-    _operations += operation
-  }
+  def ensureLimits(value: Int) = if (value > PIXEL_COLOR_MAX_VAL) PIXEL_COLOR_MAX_VAL else if (value < 0) 0 else value
 
-  def forEachPixelColor(color: String)(op: Int => Int) {
+  def forEachPixelForColor(color: String)(op: Int => Int) {
     val mask = color match {
       case RGB_R => 0xff00ffff
       case RGB_G => 0xffff00ff
@@ -59,7 +54,6 @@ class Layer private[proj](private val owner: Project, xmlData: xml.NodeSeq) {
       case RGB_G => 8
       case RGB_B => 0
     }
-    def ensureLimits(value: Int) = if (value > 0xff) 0xff else if (value < 0) 0 else value
 
     for {i <- 0 until image.getWidth; j <- 0 until image.getHeight } {
       val pixel = image.getRGB(i, j)
@@ -67,9 +61,15 @@ class Layer private[proj](private val owner: Project, xmlData: xml.NodeSeq) {
     }
   }
 
-  // FIXME: Below needs refactoring
+  def forEachPixel(op: Int => Int) {
+    for {i <- 0 until image.getWidth; j <- 0 until image.getHeight } {
+      image.setRGB(i, j, op(image.getRGB(i, j)))
+    }
+  }
 
+  def x = _x
   def moveOnX(step: Int) {
+    if (image.getWidth > owner.output.width) return
     if (x + image.getWidth + step > owner.output.width) {
       _x = owner.output.width - image.getWidth
     } else if (x + step < 0) {
@@ -77,9 +77,12 @@ class Layer private[proj](private val owner: Project, xmlData: xml.NodeSeq) {
     } else {
       _x = x + step
     }
+    owner.markDirty()
   }
 
+  def y = _y
   def moveOnY(step: Int) {
+    if (image.getHeight > owner.output.height) return
     if (y + image.getHeight + step > owner.output.height) {
       _y = owner.output.height - image.getHeight
     } else if (y + step < 0) {
@@ -87,11 +90,16 @@ class Layer private[proj](private val owner: Project, xmlData: xml.NodeSeq) {
     } else {
       _y= y + step
     }
+    owner.markDirty()
   }
 
   def transparency = _transparency
   def updateTransparency(delta: Float) {
-    _transparency = if (transparency + delta < 0.0f) 0.0f else if (transparency + delta > 1.0f) 1.0f else transparency + delta
+    _transparency =
+      if (transparency + delta < 0.0f) 0.0f
+      else if (transparency + delta > 1.0f) 1.0f
+      else transparency + delta
+    owner.markDirty()
   }
 
   def toXML: xml.Elem =

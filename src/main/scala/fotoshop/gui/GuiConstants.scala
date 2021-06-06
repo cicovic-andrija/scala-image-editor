@@ -8,7 +8,7 @@ import scala.swing.Dimension
 object GuiConstants {
   val MI_WIDTH              : Int       = 128
   val SIDEBAR_WIDTH         : Int       = 288
-  val SHR_TABLE_HEIGHT      : Int       = 192
+  val SHR_TABLE_HEIGHT      : Int       = 256
   val LAYER_PANEL_WIDTH     : Int       = 256
   val LAYER_PANEL_HEIGHT    : Int       = 144
   val LINE_THICKNESS        : Int       = 3
@@ -42,8 +42,8 @@ object GuiConstants {
   val MI_DIV_C              : String    = "Divide by C"
   val MI_REV_DIV_C          : String    = "Divide C"
   val MI_POW_C              : String    = "Power of C"
-  val MI_MIN_C              : String    = "Minimum with C"
-  val MI_MAX_C              : String    = "Maximum with C"
+  val MI_MIN_C              : String    = "Set minimum with C"
+  val MI_MAX_C              : String    = "Set maximum with C"
   val MI_INVERSE            : String    = "Inverse"
   val MI_GRAYSCALE          : String    = "Grayscale"
   val MI_SHORTCUTS          : String    = "Toggle Shortcuts"
@@ -60,6 +60,8 @@ object GuiConstants {
   val NEW_PROJ_CREATE_BTN   : String    = "Create"
   val NEW_PROJ_SIZE_FORMAT  : String    = "from %d to %d".format(OUTPUT_MIN_W_H, OUTPUT_MAX_W_H)
   val NEW_PROJ_NAME_FORMAT  : String    = "a-z A-Z _ 0-9"
+  val CLOSE_CONFIRM_MSG     : String    = "You have unsaved changes in the project, are you sure?"
+  val CLOSE_CONFIRM_TITLE   : String    = "Project changes found"
   val DEST_DIR_DIALOG_TITLE : String    = "Select project location"
   val INPUT_PARAM_LABEL     : String    = " C "
   val EXT_XML               : String    = "xml"

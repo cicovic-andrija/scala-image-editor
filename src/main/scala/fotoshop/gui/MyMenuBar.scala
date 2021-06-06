@@ -61,8 +61,8 @@ class MyMenuBar private extends MenuBar with DeafToSelf {
     contents += opRequestMenuItem(GuiConstants.MI_POW_C, Key.P, ProjectConstants.OP_POW)
     contents += opRequestMenuItem(GuiConstants.MI_MIN_C, Key.N, ProjectConstants.OP_MIN)
     contents += opRequestMenuItem(GuiConstants.MI_MAX_C, Key.X, ProjectConstants.OP_MAX)
-    contents += opRequestMenuItem(GuiConstants.MI_INVERSE, Key.I, ProjectConstants.OP_INV)
-    contents += opRequestMenuItem(GuiConstants.MI_GRAYSCALE, Key.G, ProjectConstants.OP_GRAYSCALE)
+    contents += menuItem(GuiConstants.MI_INVERSE, Key.I, InversionRequested())
+    contents += menuItem(GuiConstants.MI_GRAYSCALE, Key.G, GrayscaleRequested())
   }
 
   contents += new Menu(GuiConstants.MENU_HELP) {

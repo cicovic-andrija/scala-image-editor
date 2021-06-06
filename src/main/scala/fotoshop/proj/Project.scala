@@ -78,34 +78,41 @@ class Project private(private val _filePath: String, xmlData: xml.NodeSeq) {
 
   def operationHandler(op: String, C: Int, rgbFlags: immutable.Set[String], playBackMode: Boolean) {
 
-    def executeOperation = (operation: Int => Int) => forSelectedLayers { layer =>
-      rgbFlags foreach { color => layer.forEachPixelColor(color)(operation) }
-
+    def recordOperation(layer: Layer) {
       if (!playBackMode) {
-        // record operation
         layer.operations += Operation(op, C, rgbFlags.mkString(RGB_FLAG_SEPARATOR))
+        markDirty()
       }
     }
 
-    def executeOperationForAllColors = (operation: Int => Int) => forSelectedLayers {
-      layer => List(RGB_R, RGB_G, RGB_B) foreach { color => layer.forEachPixelColor(color)(operation) }
+    def executeOperation = (operation: Int => Int) => forSelectedLayers { layer => {
+        rgbFlags foreach { color => layer.forEachPixelForColor(color)(operation) }
+        recordOperation(layer)
+      }
+    }
+
+    def executeOperationOnWholePixel = (operation: Int => Int) => forSelectedLayers { layer => {
+        layer.forEachPixel(operation)
+        recordOperation(layer)
+      }
     }
 
     op match {
       case OP_SET => executeOperation(_ => C)
-      case OP_ADD => executeOperation(value => value + C)
-      case OP_SUB => executeOperation(value => value - C)
-      case OP_REV_SUB => executeOperation(value => C - value)
-      case OP_MUL => executeOperation(value => value * C)
+      case OP_ADD => executeOperation(_ + C)
+      case OP_SUB => executeOperation(_ - C)
+      case OP_REV_SUB => executeOperation(C - _)
+      case OP_MUL => executeOperation(_ * C)
       case OP_DIV => executeOperation(value => if (C == 0) 0 else value / C)
       case OP_REV_DIV => executeOperation(value => if (value == 0) 0 else C / value)
       case OP_POW => executeOperation(value => math.pow(value, C).intValue)
-      case OP_MIN => executeOperation(value => value.min(C))
-      case OP_MAX => executeOperation(value => value.max(C))
-      case OP_INV => executeOperationForAllColors(value => PIXEL_COLOR_MAX_VAL - value)
-      case _ =>
+      case OP_MIN => executeOperation(_.min(C))
+      case OP_MAX => executeOperation(_.max(C))
+      case OP_GRAYSCALE => executeOperationOnWholePixel(pixelValue => {
+        val avg = (List(0, 1, 2) map { byte => (pixelValue >> (byte * 8)) & 0xff } sum) / 3
+        List(0, 1, 2).foldLeft(pixelValue & PIXEL_ALPHA_MASK)((b, i) => b | (avg << i * 8))
+      })
     }
-    if (!playBackMode) markDirty()
   }
 
   def operationHandler(op: String, C: Int, rgbFlags: immutable.Set[String]) {
@@ -134,21 +141,6 @@ class Project private(private val _filePath: String, xmlData: xml.NodeSeq) {
     }
     moveLayer(idx => idx + 1)
     true
-  }
-
-  def moveImagesOnX(step: Int) {
-    _layers foreach { layer => if (layer.selected) layer.moveOnX(step) }
-    markDirty()
-  }
-
-  def moveImagesOnY(step: Int) {
-    _layers foreach { layer => if (layer.selected) layer.moveOnY(step) }
-    markDirty()
-  }
-
-  def updateTransparency(delta: Float) {
-    _layers foreach { layer => if (layer.selected) layer.updateTransparency(delta) }
-    markDirty()
   }
 }
 

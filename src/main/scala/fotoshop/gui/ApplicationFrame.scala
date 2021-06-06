@@ -1,9 +1,9 @@
 package fotoshop.gui
 
-import fotoshop.proj.ProjectConstants._
 import fotoshop.proj._
+import fotoshop.proj.ProjectConstants._
+import fotoshop.gui.GuiComponents._
 import fotoshop.util.Extensions.IntExtensions
-import GuiComponents._
 
 import java.awt.image.BufferedImage
 import scala.swing._
@@ -11,11 +11,11 @@ import scala.util._
 import scala.swing.event._
 import java.io.File
 import javax.imageio.ImageIO
+import javax.swing._
 import javax.swing.filechooser.FileNameExtensionFilter
+import scala.swing.Dialog._
 
 class ApplicationFrame private extends MainFrame {
-
-  // IDEAS: Clone layer, scale layer, confirm on exit
 
   title = GuiConstants.FRAME_TITLE
   resizable = true
@@ -24,8 +24,25 @@ class ApplicationFrame private extends MainFrame {
   menuBar = MyMenuBar.instance
   contents = mainPanel
   centerOnScreen()
-
   val newProjectDialog = new NewProjectDialog(owner = this)
+
+  def withConfirmation(f: => Unit) {
+    Project.instance match {
+      case Some(project) if project.dirty =>
+        Dialog.showConfirmation(
+          this,
+          GuiConstants.CLOSE_CONFIRM_MSG,
+          GuiConstants.CLOSE_CONFIRM_TITLE,
+          Options.YesNo,
+          Message.Question,
+          UIManager.getIcon("OptionPane.warningIcon")
+        ) match {
+          case Result.Yes => f
+          case Result.No =>
+        }
+      case _ => f
+    }
+  }
 
   def withOpenProject(f: Project => Unit) {
     Project.instance match {
@@ -34,24 +51,33 @@ class ApplicationFrame private extends MainFrame {
     }
   }
 
+  // After user gives input on the inputsPanel, the focus remains there,
+  // so programmatically regain focus in some situations with this function.
+  def withRegainedFocus(f: => Unit) {
+    mainPanel.requestFocus()
+    f
+  }
+
   reactions += {
-    case _: NewProjectRequested => newProjectDialog.visible = true
-    case _: OpenRequested => openProject()
-    case _: CloseRequested => closeProject()
-    case _: SaveRequested => withOpenProject { saveProject }
-    case _: SaveImageRequested => withOpenProject { saveImage }
-    case _: LoadImageRequested => withOpenProject { loadImage }
-    case _: DeleteLayersRequested => withOpenProject { deleteLayers }
-    case _: ToggleGuidelineRequested => withOpenProject { toggleGuideline }
-    case _: ToggleToolsRequested => { inputsPanel.toggle(); mainPanel.requestFocus() }
-    case _: ToggleShortcutsRequested => shortcutsPanel.toggle()
-    case _: LayerToggled => workspacePanel.update()
-    case _: VersionRequested => Dialog.showMessage(this, GuiConstants.VER_MESSAGE, GuiConstants.VER_DIALOG_TITLE)
+    case NewProjectRequested() => newProjectDialog.visible = true
+    case OpenRequested() => openProject()
+    case CloseRequested() => withConfirmation { closeProject() }
+    case SaveRequested() => withOpenProject { saveProject }
+    case SaveImageRequested() => withOpenProject { saveImage }
+    case LoadImageRequested() => withOpenProject { loadImage }
+    case DeleteLayersRequested() => withOpenProject { deleteLayers }
+    case ToggleGuidelineRequested() => withOpenProject { toggleGuideline }
+    case ToggleToolsRequested() => withRegainedFocus { inputsPanel.toggle() }
+    case ToggleShortcutsRequested() => shortcutsPanel.toggle()
+    case LayerToggled() => workspacePanel.update()
+    case VersionRequested() => Dialog.showMessage(this, GuiConstants.VER_MESSAGE, GuiConstants.VER_DIALOG_TITLE)
+    case ExitRequested() => closeOperation()
+    case InversionRequested() => withRegainedFocus { operationHandler(OP_REV_SUB, Input(PIXEL_COLOR_MAX_VAL, Set[String](RGB_R, RGB_G, RGB_B))) }
+    case GrayscaleRequested() => withRegainedFocus { operationHandler(OP_GRAYSCALE, Input.Empty) }
     case OperationRequested(_, InputProvided(false)) => GuiComponents.statusBar.setErrorText(GuiConstants.SB_TEXT_INVALID_INPUT)
-    case OperationRequested(op, MultiInputProvided(input @ _)) => operationHandler(op, input)
+    case OperationRequested(op, MultiInputProvided(input @ _)) => withRegainedFocus { operationHandler(op, input) }
     case ProjectParamsProvided(params) => openNewProject(params)
     case KeyPressed(_, key, mod, _) => keyHandler(key, mod)
-    case e: ExitRequested => publish(e)
   }
 
   deafTo(this)
@@ -60,20 +86,42 @@ class ApplicationFrame private extends MainFrame {
   listenTo(MyMenuBar.instance)
   listenTo(LayerList.instance)
 
+  peer.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE)
+  override def closeOperation() {
+    withConfirmation { publish(ExitRequested()) }
+  }
+
   def keyHandler(key: Key.Value, mod: Key.Modifiers) {
     Project.instance match {
       case Some(project) => key match {
-        case Key.Left if mod == GuiConstants.NO_KEY_MODIFIER => project.moveImagesOnX(-GuiConstants.MOVE_INCR)
-        case Key.Right if mod == GuiConstants.NO_KEY_MODIFIER => project.moveImagesOnX(GuiConstants.MOVE_INCR)
-        case Key.Up if mod == GuiConstants.NO_KEY_MODIFIER => project.moveImagesOnY(-GuiConstants.MOVE_INCR)
-        case Key.Down if mod == GuiConstants.NO_KEY_MODIFIER => project.moveImagesOnY(GuiConstants.MOVE_INCR)
-        case Key.Left if mod mask Key.Modifier.Control => project.updateTransparency(-GuiConstants.TRANSPARENCY_INCR)
-        case Key.Right if mod mask Key.Modifier.Control => project.updateTransparency(GuiConstants.TRANSPARENCY_INCR)
-        case Key.Up if mod mask Key.Modifier.Control => moveLayerUp(project)
-        case Key.Down if mod mask Key.Modifier.Control => moveLayerDown(project)
+        case Key.Up if mod mask Key.Modifier.Control =>
+          moveLayerUp(project)
+
+        case Key.Down if mod mask Key.Modifier.Control =>
+          moveLayerDown(project)
+
+        case Key.Left if mod mask Key.Modifier.Control =>
+          project forSelectedLayers { _.updateTransparency(-GuiConstants.TRANSPARENCY_INCR) }
+
+        case Key.Right if mod mask Key.Modifier.Control =>
+          project forSelectedLayers { _.updateTransparency(GuiConstants.TRANSPARENCY_INCR) }
+
+        case Key.Left if mod == GuiConstants.NO_KEY_MODIFIER =>
+          project forSelectedLayers { _.moveOnX(-GuiConstants.MOVE_INCR) }
+
+        case Key.Right if mod == GuiConstants.NO_KEY_MODIFIER =>
+          project forSelectedLayers { _.moveOnX(GuiConstants.MOVE_INCR) }
+
+        case Key.Up if mod == GuiConstants.NO_KEY_MODIFIER =>
+          project forSelectedLayers { _.moveOnY(-GuiConstants.MOVE_INCR) }
+
+        case Key.Down if mod == GuiConstants.NO_KEY_MODIFIER =>
+          project forSelectedLayers { _.moveOnY(GuiConstants.MOVE_INCR) }
+
         case Key.Escape =>
           project forSelectedLayers { _.selected = false }
           LayerList.instance.refreshBorders()
+
         case _ =>
       }
       case None => return

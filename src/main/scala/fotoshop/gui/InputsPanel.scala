@@ -30,7 +30,7 @@ class InputsPanel extends BoxPanel(Orientation.Horizontal) with Toggleable {
   def updatedRgbSet(rgbComponent: String)(b: Boolean) = if (b) rgbFlags + rgbComponent else rgbFlags - rgbComponent
 
   def gatherInput: InputEvent = {
-    if (C < 0) InputProvided(valid = false) else MultiInputProvided(Input(C, rgbFlags))
+    if (C < 0 || rgbFlags.isEmpty) InputProvided(valid = false) else MultiInputProvided(Input(C, rgbFlags))
   }
 
   def reset() {

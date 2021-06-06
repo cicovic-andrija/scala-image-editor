@@ -18,10 +18,10 @@ object ProjectConstants {
   val OP_POW                : String = "POW"
   val OP_MIN                : String = "MIN"
   val OP_MAX                : String = "MAX"
-  val OP_INV                : String = "INV"
   val OP_GRAYSCALE          : String = "GRAYSCALE"
   val RGB_FLAG_SEPARATOR    : String = ","
   val OUTPUT_MIN_W_H        : Int    = 32
   val OUTPUT_MAX_W_H        : Int    = 4096
   val PIXEL_COLOR_MAX_VAL   : Int    = 0xff
+  val PIXEL_ALPHA_MASK      : Int    = 0xff000000
 }
