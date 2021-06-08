@@ -6,6 +6,7 @@ import fotoshop.proj.ProjectConstants._
 import java.awt.image.BufferedImage
 import java.io.File
 import javax.imageio.ImageIO
+import scala.collection.{immutable, mutable}
 import scala.collection.mutable.ListBuffer
 import scala.language.postfixOps
 
@@ -58,6 +59,31 @@ class Layer private[proj](private val owner: Project, xmlData: xml.NodeSeq) {
     for {i <- 0 until image.getWidth; j <- 0 until image.getHeight } {
       val pixel = image.getRGB(i, j)
       image.setRGB(i, j, (pixel & mask) | ensureLimits(op((pixel >> shift) & 0xff)) << shift)
+    }
+  }
+
+  def applyFilterToNearbyPixelsForColor(C: Int)(color: String)(op: immutable.IndexedSeq[Int] => Int) {
+    val mask = color match {
+      case RGB_R => 0xff00ffff
+      case RGB_G => 0xffff00ff
+      case RGB_B => 0xffffff00
+    }
+    val shift = color match {
+      case RGB_R => 16
+      case RGB_G => 8
+      case RGB_B => 0
+    }
+    def x1(x: Int) = if (x - C < 0) 0 else x - C
+    def x2(x: Int) = if (x + C >= image.getWidth) image.getWidth - 1 else x + C
+    def y1(y: Int) = if (y - C < 0) 0 else y - C
+    def y2(y: Int) = if (y + C >= image.getHeight) image.getHeight - 1 else y + C
+
+    val newValues = new mutable.Queue[Int](image.getWidth * image.getHeight)
+    for { i <- 0 until image.getWidth; j <- 0 until image.getHeight } {
+      newValues += op(for { i1 <- x1(i) to x2(i); j1 <- y1(j) to y2(j) } yield (image.getRGB(i1, j1) >> shift) & 0xff)
+    }
+    for { i <- 0 until image.getWidth; j <- 0 until image.getHeight } {
+      image.setRGB(i, j, (image.getRGB(i, j) & mask) | ensureLimits(newValues.dequeue()) << shift)
     }
   }
 

@@ -2,12 +2,13 @@ package fotoshop.proj
 
 import fotoshop.util.Extensions._
 import fotoshop.proj.ProjectConstants._
+import fotoshop.util.Algorithms
 
 import scala.xml._
 import scala.collection.mutable._
 import scala.language.postfixOps
 import java.io.File
-import scala.collection.immutable
+import scala.collection._
 
 class Project private(private val _filePath: String, xmlData: xml.NodeSeq) {
   private val _name: String = xmlData \@ "Name" ifEmpty { throw new Exception() } trim
@@ -97,6 +98,12 @@ class Project private(private val _filePath: String, xmlData: xml.NodeSeq) {
       }
     }
 
+    def applyFilter = (operation: immutable.IndexedSeq[Int] => Int) => forSelectedLayers { layer => {
+        rgbFlags foreach { color => layer.applyFilterToNearbyPixelsForColor(C)(color)(operation) }
+        recordOperation(layer)
+      }
+    }
+
     op match {
       case OP_SET => executeOperation(_ => C)
       case OP_ADD => executeOperation(_ + C)
@@ -105,13 +112,14 @@ class Project private(private val _filePath: String, xmlData: xml.NodeSeq) {
       case OP_MUL => executeOperation(_ * C)
       case OP_DIV => executeOperation(value => if (C == 0) 0 else value / C)
       case OP_REV_DIV => executeOperation(value => if (value == 0) 0 else C / value)
-      case OP_POW => executeOperation(value => math.pow(value, C).intValue)
+      case OP_POW if C > 0 => executeOperation(value => math.pow(value, C).intValue)
+      case OP_LOG if C > 0 => executeOperation(_ => math.log(C).intValue)
       case OP_MIN => executeOperation(_.min(C))
       case OP_MAX => executeOperation(_.max(C))
-      case OP_GRAYSCALE => executeOperationOnWholePixel(pixelValue => {
-        val avg = (List(0, 1, 2) map { byte => (pixelValue >> (byte * 8)) & 0xff } sum) / 3
-        List(0, 1, 2).foldLeft(pixelValue & PIXEL_ALPHA_MASK)((b, i) => b | (avg << i * 8))
-      })
+      case OP_GRAYSCALE => executeOperationOnWholePixel(Algorithms.grayscale)
+      case OP_FILTER_MEDIAN if C > 0 => applyFilter(Algorithms.median)
+      case OP_FILTER_AVG if C > 0 => applyFilter(Algorithms.average)
+      case _ =>
     }
   }
 

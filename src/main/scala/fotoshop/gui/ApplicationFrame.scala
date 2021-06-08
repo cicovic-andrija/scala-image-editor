@@ -138,6 +138,7 @@ class ApplicationFrame private extends MainFrame {
         workspacePanel.update()
       case None =>
     }
+    statusBar.clear()
   }
 
   def openNewProject(params: ProjectParams) {
