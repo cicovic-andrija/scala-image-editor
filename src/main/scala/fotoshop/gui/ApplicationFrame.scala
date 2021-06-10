@@ -122,6 +122,9 @@ class ApplicationFrame private extends MainFrame {
           project forSelectedLayers { _.selected = false }
           LayerList.instance.refreshBorders()
 
+        case Key.C if mod mask Key.Modifier.Control =>
+          project forSelectedLayers { _.center() }
+
         case _ =>
       }
       case None => return

@@ -30,6 +30,7 @@ object ShortcutsPanel {
     Array("Ctrl+Click", "Show/hide layer"),
     Array("Ctrl+U/D Arrow (selected)", "Move layer"),
     Array("Ctrl+L/R Arrow (selected)", "Change transparency"),
+    Array("Ctrl+C", "Center on screen"),
     Array("Alt+P", "Open Project menu"),
     Array("Alt+P+N", "Create new project"),
     Array("Alt+P+O", "Open a project"),

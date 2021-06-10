@@ -32,7 +32,7 @@ class Layer private[proj](private val owner: Project, xmlData: xml.NodeSeq) {
   def operations = _operations
 
   def selected = _selected
-  def selected_=(selected: Boolean): Unit = {
+  def selected_=(selected: Boolean) {
     _selected = selected
   }
 
@@ -96,27 +96,46 @@ class Layer private[proj](private val owner: Project, xmlData: xml.NodeSeq) {
   def x = _x
   def moveOnX(step: Int) {
     if (image.getWidth > owner.output.width) return
+    var newX = 0
     if (x + image.getWidth + step > owner.output.width) {
-      _x = owner.output.width - image.getWidth
+      newX = owner.output.width - image.getWidth
     } else if (x + step < 0) {
-      _x = 0
+      newX = 0
     } else {
-      _x = x + step
+      newX = x + step
     }
-    owner.markDirty()
+    if (newX != x) {
+      _x = newX
+      owner.markDirty()
+    }
   }
 
   def y = _y
   def moveOnY(step: Int) {
     if (image.getHeight > owner.output.height) return
+    var newY = 0
     if (y + image.getHeight + step > owner.output.height) {
-      _y = owner.output.height - image.getHeight
+      newY = owner.output.height - image.getHeight
     } else if (y + step < 0) {
-      _y = 0
+      newY = 0
     } else {
-      _y= y + step
+      newY = y + step
     }
-    owner.markDirty()
+    if (newY != y) {
+      _y = newY
+      owner.markDirty()
+    }
+  }
+
+  def center() {
+    if (image.getWidth < owner.output.width && x != (owner.output.width - image.getWidth) / 2) {
+      _x = (owner.output.width - image.getWidth) / 2
+      owner.markDirty()
+    }
+    if (image.getHeight < owner.output.height && y != (owner.output.height - image.getHeight) / 2) {
+      _y = (owner.output.height - image.getHeight) / 2
+      owner.markDirty()
+    }
   }
 
   def transparency = _transparency
