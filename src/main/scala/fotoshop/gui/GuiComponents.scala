@@ -1,6 +1,5 @@
 package fotoshop.gui
 
-// FIXME: Fix all imports in whole project when done.
 import fotoshop.proj.Project
 
 import scala.swing._
